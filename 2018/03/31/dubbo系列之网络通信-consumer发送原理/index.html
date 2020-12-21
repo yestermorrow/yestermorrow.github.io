@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="dubbo," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="dubbo系列之网络通信-consumer发送原理简要先来看一张dubbo的网络通信架构图（也可以说是调用链设计图）  备注：inherit代表继承interface接口，init代表初始化，call代表调用 这篇博客主要就是介绍红色区域，红色区域下面在前几篇博客都已经介绍过了。 源码介绍接着前面loadbalance往下走 FailoverClusterInvoker类doInvoke()1Re">
+<meta property="og:type" content="article">
+<meta property="og:title" content="dubbo系列之网络通信-consumer发送原理">
+<meta property="og:url" content="http://yoursite.com/2018/03/31/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1-consumer%E5%8F%91%E9%80%81%E5%8E%9F%E7%90%86/index.html">
+<meta property="og:site_name" content="Yestermorrow">
+<meta property="og:description" content="dubbo系列之网络通信-consumer发送原理简要先来看一张dubbo的网络通信架构图（也可以说是调用链设计图）  备注：inherit代表继承interface接口，init代表初始化，call代表调用 这篇博客主要就是介绍红色区域，红色区域下面在前几篇博客都已经介绍过了。 源码介绍接着前面loadbalance往下走 FailoverClusterInvoker类doInvoke()1Re">
+<meta property="og:locale">
+<meta property="og:image" content="http://yoursite.com/2018/03/31/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1-consumer%E5%8F%91%E9%80%81%E5%8E%9F%E7%90%86/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1-consumer%E5%8F%91%E9%80%81%E5%8E%9F%E7%90%86/dubbo%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1%E6%9E%B6%E6%9E%84%E5%9B%BE-1.png">
+<meta property="article:published_time" content="2018-03-31T11:34:40.000Z">
+<meta property="article:modified_time" content="2018-08-28T13:55:52.000Z">
+<meta property="article:author" content="yestermorrow">
+<meta property="article:tag" content="dubbo">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2018/03/31/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1-consumer%E5%8F%91%E9%80%81%E5%8E%9F%E7%90%86/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1-consumer%E5%8F%91%E9%80%81%E5%8E%9F%E7%90%86/dubbo%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1%E6%9E%B6%E6%9E%84%E5%9B%BE-1.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/03/31/dubbo系列之网络通信-consumer发送原理/"/>
+
+
+
+
+
+  <title>dubbo系列之网络通信-consumer发送原理 | Yestermorrow</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 5.3.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Yestermorrow</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/%20" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/%20" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/03/31/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1-consumer%E5%8F%91%E9%80%81%E5%8E%9F%E7%90%86/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/cat.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Yestermorrow">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">dubbo系列之网络通信-consumer发送原理</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-03-31T19:34:40+08:00">
+                2018-03-31
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="dubbo系列之网络通信-consumer发送原理"><a href="#dubbo系列之网络通信-consumer发送原理" class="headerlink" title="dubbo系列之网络通信-consumer发送原理"></a>dubbo系列之网络通信-consumer发送原理</h1><h3 id="简要"><a href="#简要" class="headerlink" title="简要"></a>简要</h3><p>先来看一张dubbo的网络通信架构图（也可以说是调用链设计图）</p>
+<p><img src="dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1-consumer%E5%8F%91%E9%80%81%E5%8E%9F%E7%90%86/dubbo%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1%E6%9E%B6%E6%9E%84%E5%9B%BE-1.png" alt="dubbo网络通信架构图"></p>
+<p><strong>备注</strong>：inherit代表继承interface接口，init代表初始化，call代表调用</p>
+<p>这篇博客主要就是介绍红色区域，红色区域下面在前几篇博客都已经介绍过了。</p>
+<h3 id="源码介绍"><a href="#源码介绍" class="headerlink" title="源码介绍"></a>源码介绍</h3><p>接着前面loadbalance往下走</p>
+<h4 id="FailoverClusterInvoker类"><a href="#FailoverClusterInvoker类" class="headerlink" title="FailoverClusterInvoker类"></a>FailoverClusterInvoker类</h4><h5 id="doInvoke"><a href="#doInvoke" class="headerlink" title="doInvoke()"></a>doInvoke()</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Result result = invoker.invoke(invocation);<span class="comment">//debug进去</span></span><br></pre></td></tr></table></figure>
+<h4 id="ProtocolFilterWrapper类"><a href="#ProtocolFilterWrapper类" class="headerlink" title="ProtocolFilterWrapper类"></a>ProtocolFilterWrapper类</h4><h5 id="buildInvokerChain"><a href="#buildInvokerChain" class="headerlink" title="buildInvokerChain()"></a>buildInvokerChain()</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Result <span class="title">invoke</span><span class="params">(Invocation invocation)</span> <span class="keyword">throws</span> RpcException </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> filter.invoke(next, invocation);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>—————————这里开始进去filter了——————————-</p>
+<h4 id="ConsumerContextFilter类"><a href="#ConsumerContextFilter类" class="headerlink" title="ConsumerContextFilter类"></a>ConsumerContextFilter类</h4><h5 id="invoke"><a href="#invoke" class="headerlink" title="invoke()"></a>invoke()</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Result <span class="title">invoke</span><span class="params">(Invoker&lt;?&gt; invoker, Invocation invocation)</span> <span class="keyword">throws</span> RpcException </span>&#123;</span><br><span class="line">    RpcContext.getContext()</span><br><span class="line">            .setInvoker(invoker)</span><br><span class="line">            .setInvocation(invocation)</span><br><span class="line">            .setLocalAddress(NetUtils.getLocalHost(), <span class="number">0</span>)</span><br><span class="line">            .setRemoteAddress(invoker.getUrl().getHost(),</span><br><span class="line">                    invoker.getUrl().getPort());</span><br><span class="line">    <span class="keyword">if</span> (invocation <span class="keyword">instanceof</span> RpcInvocation) &#123;</span><br><span class="line">        ((RpcInvocation) invocation).setInvoker(invoker);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> invoker.invoke(invocation);</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        RpcContext.getContext().clearAttachments();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>进入上下文context，为Invocation设置需要执行的方法和参数等重要信息。</p>
+<h4 id="MonitorFilter类"><a href="#MonitorFilter类" class="headerlink" title="MonitorFilter类"></a>MonitorFilter类</h4><h5 id="invoke-1"><a href="#invoke-1" class="headerlink" title="invoke()"></a>invoke()</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 调用过程拦截</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> Result <span class="title">invoke</span><span class="params">(Invoker&lt;?&gt; invoker, Invocation invocation)</span> <span class="keyword">throws</span> RpcException </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (invoker.getUrl().hasParameter(Constants.MONITOR_KEY)) &#123;</span><br><span class="line">        RpcContext context = RpcContext.getContext(); <span class="comment">// 提供方必须在invoke()之前获取context信息</span></span><br><span class="line">        String remoteHost = context.getRemoteHost();</span><br><span class="line">        <span class="keyword">long</span> start = System.currentTimeMillis(); <span class="comment">// 记录起始时间戮</span></span><br><span class="line">        getConcurrent(invoker, invocation).incrementAndGet(); <span class="comment">// 并发计数</span></span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            Result result = invoker.invoke(invocation); <span class="comment">// 让调用链往下执行</span></span><br><span class="line">            collect(invoker, invocation, result, remoteHost, start, <span class="keyword">false</span>);</span><br><span class="line">            <span class="keyword">return</span> result;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (RpcException e) &#123;</span><br><span class="line">            collect(invoker, invocation, <span class="keyword">null</span>, remoteHost, start, <span class="keyword">true</span>);</span><br><span class="line">            <span class="keyword">throw</span> e;</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            getConcurrent(invoker, invocation).decrementAndGet(); <span class="comment">// 并发计数</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> invoker.invoke(invocation);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>进入监控的filter</p>
+<h4 id="DubboInvoker类"><a href="#DubboInvoker类" class="headerlink" title="DubboInvoker类"></a>DubboInvoker类</h4><h5 id="doInvoke-1"><a href="#doInvoke-1" class="headerlink" title="doInvoke()"></a>doInvoke()</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> Result <span class="title">doInvoke</span><span class="params">(<span class="keyword">final</span> Invocation invocation)</span> <span class="keyword">throws</span> Throwable </span>&#123;</span><br><span class="line">    RpcInvocation inv = (RpcInvocation) invocation;</span><br><span class="line">    <span class="keyword">final</span> String methodName = RpcUtils.getMethodName(invocation);</span><br><span class="line">    inv.setAttachment(Constants.PATH_KEY, getUrl().getPath());</span><br><span class="line">    inv.setAttachment(Constants.VERSION_KEY, version);</span><br><span class="line"></span><br><span class="line">    ExchangeClient currentClient;</span><br><span class="line">    <span class="keyword">if</span> (clients.length == <span class="number">1</span>) &#123;</span><br><span class="line">        currentClient = clients[<span class="number">0</span>];</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        currentClient = clients[index.getAndIncrement() % clients.length];</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">boolean</span> isAsync = RpcUtils.isAsync(getUrl(), invocation);</span><br><span class="line">        <span class="keyword">boolean</span> isOneway = RpcUtils.isOneway(getUrl(), invocation);</span><br><span class="line">        <span class="keyword">int</span> timeout = getUrl().getMethodParameter(methodName, Constants.TIMEOUT_KEY, Constants.DEFAULT_TIMEOUT);</span><br><span class="line">        <span class="keyword">if</span> (isOneway) &#123;</span><br><span class="line">            <span class="keyword">boolean</span> isSent = getUrl().getMethodParameter(methodName, Constants.SENT_KEY, <span class="keyword">false</span>);</span><br><span class="line">            currentClient.send(inv, isSent);</span><br><span class="line">            RpcContext.getContext().setFuture(<span class="keyword">null</span>);</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">new</span> RpcResult();</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (isAsync) &#123;</span><br><span class="line">            ResponseFuture future = currentClient.request(inv, timeout);</span><br><span class="line">            RpcContext.getContext().setFuture(<span class="keyword">new</span> FutureAdapter&lt;Object&gt;(future));</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">new</span> RpcResult();</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            RpcContext.getContext().setFuture(<span class="keyword">null</span>);</span><br><span class="line">            <span class="comment">//发送请求</span></span><br><span class="line">            <span class="keyword">return</span> (Result) currentClient.request(inv, timeout).get();<span class="comment">//debug进去</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (TimeoutException e) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> RpcException(RpcException.TIMEOUT_EXCEPTION, <span class="string">&quot;Invoke remote method timeout. method: &quot;</span> + invocation.getMethodName() + <span class="string">&quot;, provider: &quot;</span> + getUrl() + <span class="string">&quot;, cause: &quot;</span> + e.getMessage(), e);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (RemotingException e) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> RpcException(RpcException.NETWORK_EXCEPTION, <span class="string">&quot;Failed to invoke remote method: &quot;</span> + invocation.getMethodName() + <span class="string">&quot;, provider: &quot;</span> + getUrl() + <span class="string">&quot;, cause: &quot;</span> + e.getMessage(), e);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="HeaderExchangeChannel类"><a href="#HeaderExchangeChannel类" class="headerlink" title="HeaderExchangeChannel类"></a>HeaderExchangeChannel类</h4><h5 id="request"><a href="#request" class="headerlink" title="request()"></a>request()</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> ResponseFuture <span class="title">request</span><span class="params">(Object request, <span class="keyword">int</span> timeout)</span> <span class="keyword">throws</span> RemotingException </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (closed) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> RemotingException(<span class="keyword">this</span>.getLocalAddress(), <span class="keyword">null</span>, <span class="string">&quot;Failed to send request &quot;</span> + request + <span class="string">&quot;, cause: The channel &quot;</span> + <span class="keyword">this</span> + <span class="string">&quot; is closed!&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// create request.</span></span><br><span class="line">    Request req = <span class="keyword">new</span> Request();</span><br><span class="line">    req.setVersion(<span class="string">&quot;2.0.0&quot;</span>);</span><br><span class="line">    req.setTwoWay(<span class="keyword">true</span>);</span><br><span class="line">    req.setData(request);</span><br><span class="line">    DefaultFuture future = <span class="keyword">new</span> DefaultFuture(channel, req, timeout);</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        channel.send(req);<span class="comment">//发送请求</span></span><br><span class="line">    &#125; <span class="keyword">catch</span> (RemotingException e) &#123;</span><br><span class="line">        future.cancel();</span><br><span class="line">        <span class="keyword">throw</span> e;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> future;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="AbstractClient类"><a href="#AbstractClient类" class="headerlink" title="AbstractClient类"></a>AbstractClient类</h4><h5 id="send"><a href="#send" class="headerlink" title="send()"></a>send()</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">send</span><span class="params">(Object message, <span class="keyword">boolean</span> sent)</span> <span class="keyword">throws</span> RemotingException </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (send_reconnect &amp;&amp; !isConnected()) &#123;</span><br><span class="line">        connect();</span><br><span class="line">    &#125;</span><br><span class="line">    Channel channel = getChannel();</span><br><span class="line">    <span class="comment">//TODO getChannel返回的状态是否包含null需要改进</span></span><br><span class="line">    <span class="keyword">if</span> (channel == <span class="keyword">null</span> || !channel.isConnected()) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> RemotingException(<span class="keyword">this</span>, <span class="string">&quot;message can not send, because channel is closed . url:&quot;</span> + getUrl());</span><br><span class="line">    &#125;</span><br><span class="line">    channel.send(message, sent);<span class="comment">//debug进去</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="NettyChannel类"><a href="#NettyChannel类" class="headerlink" title="NettyChannel类"></a>NettyChannel类</h4><h5 id="send-1"><a href="#send-1" class="headerlink" title="send()"></a>send()</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">send</span><span class="params">(Object message, <span class="keyword">boolean</span> sent)</span> <span class="keyword">throws</span> RemotingException </span>&#123;</span><br><span class="line">    <span class="keyword">super</span>.send(message, sent);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">boolean</span> success = <span class="keyword">true</span>;</span><br><span class="line">    <span class="keyword">int</span> timeout = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="comment">//最终目的：通过netty的channel发送网络数据</span></span><br><span class="line">        ChannelFuture future = channel.write(message);</span><br><span class="line">        <span class="keyword">if</span> (sent) &#123;</span><br><span class="line">            timeout = getUrl().getPositiveParameter(Constants.TIMEOUT_KEY, Constants.DEFAULT_TIMEOUT);</span><br><span class="line">            success = future.await(timeout);</span><br><span class="line">        &#125;</span><br><span class="line">        Throwable cause = future.getCause();</span><br><span class="line">        <span class="keyword">if</span> (cause != <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">throw</span> cause;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Throwable e) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> RemotingException(<span class="keyword">this</span>, <span class="string">&quot;Failed to send message &quot;</span> + message + <span class="string">&quot; to &quot;</span> + getRemoteAddress() + <span class="string">&quot;, cause: &quot;</span> + e.getMessage(), e);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!success) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> RemotingException(<span class="keyword">this</span>, <span class="string">&quot;Failed to send message &quot;</span> + message + <span class="string">&quot; to &quot;</span> + getRemoteAddress()</span><br><span class="line">                + <span class="string">&quot;in timeout(&quot;</span> + timeout + <span class="string">&quot;ms) limit&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>进去到了NettyChannel，就是实现netty的方法：channel.write(message)。达到最终目的：通过netty的channel发送网络数据。</p>
+<p>最后总结一下框架图上我们圈起来三步骤</p>
+<h5 id="Filter：ConsumerContextFilter-MonitorFilter等一些过滤器类"><a href="#Filter：ConsumerContextFilter-MonitorFilter等一些过滤器类" class="headerlink" title="Filter：ConsumerContextFilter MonitorFilter等一些过滤器类"></a>Filter：ConsumerContextFilter MonitorFilter等一些过滤器类</h5><h5 id="Invoker：DubboInvoker类"><a href="#Invoker：DubboInvoker类" class="headerlink" title="Invoker：DubboInvoker类"></a>Invoker：DubboInvoker类</h5><h6 id="看框架图中知道，invoker的实现是一个protocol，为什么DubboInvoker是个protocol？"><a href="#看框架图中知道，invoker的实现是一个protocol，为什么DubboInvoker是个protocol？" class="headerlink" title="看框架图中知道，invoker的实现是一个protocol，为什么DubboInvoker是个protocol？"></a><strong>看框架图中知道，invoker的实现是一个protocol，为什么DubboInvoker是个protocol？</strong></h6><p>如果前面的服务引用我们认真看源码的话，应该熟悉DubboInvoker这个类，就是在RegistryDirectory类</p>
+<p>——&gt;refreshInvoker()</p>
+<pre><code>——&gt;toInvokers()
+
+    ——&gt;DubboProtocol类
+
+        ——&gt;refer()</code></pre>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> &lt;T&gt; <span class="function">Invoker&lt;T&gt; <span class="title">refer</span><span class="params">(Class&lt;T&gt; serviceType, URL url)</span> <span class="keyword">throws</span> RpcException </span>&#123;</span><br><span class="line">    <span class="comment">// create rpc invoker.</span></span><br><span class="line">    DubboInvoker&lt;T&gt; invoker = <span class="keyword">new</span> DubboInvoker&lt;T&gt;(serviceType, url, getClients(url), invokers);</span><br><span class="line">    invokers.add(invoker);</span><br><span class="line">    <span class="keyword">return</span> invoker;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>所以在服务引用的这个地方，DubboInvoker就被创建了，所以说，DubboInvoker是一个protocol。</p>
+<h5 id="Client：就是NettyClient类。"><a href="#Client：就是NettyClient类。" class="headerlink" title="Client：就是NettyClient类。"></a>Client：就是NettyClient类。</h5><p>但是我们上面的代码好像没有看到NettyClient类，原来NettyClient类就是我们看到的AbstractClient类的继承类。</p>
+<h5 id="那client的实现Transporter又是什么意思呢"><a href="#那client的实现Transporter又是什么意思呢" class="headerlink" title="那client的实现Transporter又是什么意思呢"></a><strong>那client的实现Transporter又是什么意思呢</strong></h5><p>transporter：网络传输层，用来抽象netty和mina的统一接口。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/dubbo/" rel="tag"># dubbo</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/03/26/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E5%AE%9E%E7%8E%B0SOA%E6%9C%8D%E5%8A%A1%E9%99%8D%E7%BA%A7/" rel="next" title="dubbo系列之实现SOA服务降级">
+                <i class="fa fa-chevron-left"></i> dubbo系列之实现SOA服务降级
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/04/02/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1-provider%E7%9A%84%E6%8E%A5%E6%94%B6%E4%B8%8E%E5%8F%91%E9%80%81%E5%8E%9F%E7%90%86/" rel="prev" title="dubbo系列之网络通信-provider的接收与发送原理">
+                dubbo系列之网络通信-provider的接收与发送原理 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/cat.jpg"
+                alt="" />
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/%20%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">66</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">16</span>
+                  <span class="site-state-item-name">标签</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/yestermorrow" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1-consumer%E5%8F%91%E9%80%81%E5%8E%9F%E7%90%86"><span class="nav-number">1.</span> <span class="nav-text">dubbo系列之网络通信-consumer发送原理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AE%80%E8%A6%81"><span class="nav-number">1.0.1.</span> <span class="nav-text">简要</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BA%90%E7%A0%81%E4%BB%8B%E7%BB%8D"><span class="nav-number">1.0.2.</span> <span class="nav-text">源码介绍</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#FailoverClusterInvoker%E7%B1%BB"><span class="nav-number">1.0.2.1.</span> <span class="nav-text">FailoverClusterInvoker类</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#doInvoke"><span class="nav-number">1.0.2.1.1.</span> <span class="nav-text">doInvoke()</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#ProtocolFilterWrapper%E7%B1%BB"><span class="nav-number">1.0.2.2.</span> <span class="nav-text">ProtocolFilterWrapper类</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#buildInvokerChain"><span class="nav-number">1.0.2.2.1.</span> <span class="nav-text">buildInvokerChain()</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#ConsumerContextFilter%E7%B1%BB"><span class="nav-number">1.0.2.3.</span> <span class="nav-text">ConsumerContextFilter类</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#invoke"><span class="nav-number">1.0.2.3.1.</span> <span class="nav-text">invoke()</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#MonitorFilter%E7%B1%BB"><span class="nav-number">1.0.2.4.</span> <span class="nav-text">MonitorFilter类</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#invoke-1"><span class="nav-number">1.0.2.4.1.</span> <span class="nav-text">invoke()</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#DubboInvoker%E7%B1%BB"><span class="nav-number">1.0.2.5.</span> <span class="nav-text">DubboInvoker类</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#doInvoke-1"><span class="nav-number">1.0.2.5.1.</span> <span class="nav-text">doInvoke()</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#HeaderExchangeChannel%E7%B1%BB"><span class="nav-number">1.0.2.6.</span> <span class="nav-text">HeaderExchangeChannel类</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#request"><span class="nav-number">1.0.2.6.1.</span> <span class="nav-text">request()</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#AbstractClient%E7%B1%BB"><span class="nav-number">1.0.2.7.</span> <span class="nav-text">AbstractClient类</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#send"><span class="nav-number">1.0.2.7.1.</span> <span class="nav-text">send()</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#NettyChannel%E7%B1%BB"><span class="nav-number">1.0.2.8.</span> <span class="nav-text">NettyChannel类</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#send-1"><span class="nav-number">1.0.2.8.1.</span> <span class="nav-text">send()</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Filter%EF%BC%9AConsumerContextFilter-MonitorFilter%E7%AD%89%E4%B8%80%E4%BA%9B%E8%BF%87%E6%BB%A4%E5%99%A8%E7%B1%BB"><span class="nav-number">1.0.2.8.2.</span> <span class="nav-text">Filter：ConsumerContextFilter MonitorFilter等一些过滤器类</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Invoker%EF%BC%9ADubboInvoker%E7%B1%BB"><span class="nav-number">1.0.2.8.3.</span> <span class="nav-text">Invoker：DubboInvoker类</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#%E7%9C%8B%E6%A1%86%E6%9E%B6%E5%9B%BE%E4%B8%AD%E7%9F%A5%E9%81%93%EF%BC%8Cinvoker%E7%9A%84%E5%AE%9E%E7%8E%B0%E6%98%AF%E4%B8%80%E4%B8%AAprotocol%EF%BC%8C%E4%B8%BA%E4%BB%80%E4%B9%88DubboInvoker%E6%98%AF%E4%B8%AAprotocol%EF%BC%9F"><span class="nav-number">1.0.2.8.3.1.</span> <span class="nav-text">看框架图中知道，invoker的实现是一个protocol，为什么DubboInvoker是个protocol？</span></a></li></ol></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Client%EF%BC%9A%E5%B0%B1%E6%98%AFNettyClient%E7%B1%BB%E3%80%82"><span class="nav-number">1.0.2.8.4.</span> <span class="nav-text">Client：就是NettyClient类。</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E9%82%A3client%E7%9A%84%E5%AE%9E%E7%8E%B0Transporter%E5%8F%88%E6%98%AF%E4%BB%80%E4%B9%88%E6%84%8F%E6%80%9D%E5%91%A2"><span class="nav-number">1.0.2.8.5.</span> <span class="nav-text">那client的实现Transporter又是什么意思呢</span></a></li></ol></li></ol></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">yestermorrow</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

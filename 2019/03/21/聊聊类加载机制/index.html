@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="侃侃而谈," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="聊聊类加载机制类加载机制虚拟机把描述类的数据从Class文件加载到内存，并对数据进行校验、转换解析和初始化，最终形成可以被虚拟机直接使用的Java类型，这就是虚拟机的类加载机制。 1：什么是类加载器类加载器负责加载java类到java虚拟机的内存空间中，类通常是按需加载，即第一次使用该类时才加载。由于有了类加载器，java运行时系统不需要知道文件与文件系统。负责读取 Java 字节代码，并转换成j">
+<meta property="og:type" content="article">
+<meta property="og:title" content="聊聊类加载机制">
+<meta property="og:url" content="http://yoursite.com/2019/03/21/%E8%81%8A%E8%81%8A%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/index.html">
+<meta property="og:site_name" content="Yestermorrow">
+<meta property="og:description" content="聊聊类加载机制类加载机制虚拟机把描述类的数据从Class文件加载到内存，并对数据进行校验、转换解析和初始化，最终形成可以被虚拟机直接使用的Java类型，这就是虚拟机的类加载机制。 1：什么是类加载器类加载器负责加载java类到java虚拟机的内存空间中，类通常是按需加载，即第一次使用该类时才加载。由于有了类加载器，java运行时系统不需要知道文件与文件系统。负责读取 Java 字节代码，并转换成j">
+<meta property="og:locale">
+<meta property="og:image" content="http://yoursite.com/2019/03/21/%E8%81%8A%E8%81%8A%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/%E8%81%8A%E8%81%8AJVM/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%99%A8%E5%8F%8C%E4%BA%B2%E5%A7%94%E6%B4%BE%E6%A8%A1%E5%9E%8B.png">
+<meta property="og:image" content="http://yoursite.com/2019/03/21/%E8%81%8A%E8%81%8A%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/%E8%81%8A%E8%81%8A%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E8%BF%87%E7%A8%8B.png">
+<meta property="article:published_time" content="2019-03-21T02:26:31.000Z">
+<meta property="article:modified_time" content="2019-03-25T03:52:32.000Z">
+<meta property="article:author" content="yestermorrow">
+<meta property="article:tag" content="侃侃而谈">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2019/03/21/%E8%81%8A%E8%81%8A%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/%E8%81%8A%E8%81%8AJVM/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%99%A8%E5%8F%8C%E4%BA%B2%E5%A7%94%E6%B4%BE%E6%A8%A1%E5%9E%8B.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/03/21/聊聊类加载机制/"/>
+
+
+
+
+
+  <title>聊聊类加载机制 | Yestermorrow</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 5.3.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Yestermorrow</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/%20" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/%20" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/21/%E8%81%8A%E8%81%8A%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/cat.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Yestermorrow">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">聊聊类加载机制</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-21T10:26:31+08:00">
+                2019-03-21
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="聊聊类加载机制"><a href="#聊聊类加载机制" class="headerlink" title="聊聊类加载机制"></a>聊聊类加载机制</h1><h4 id="类加载机制"><a href="#类加载机制" class="headerlink" title="类加载机制"></a>类加载机制</h4><p>虚拟机把描述类的数据从Class文件加载到内存，并对数据进行校验、转换解析和初始化，最终形成可以被虚拟机直接使用的Java类型，这就是虚拟机的类加载机制。</p>
+<h4 id="1：什么是类加载器"><a href="#1：什么是类加载器" class="headerlink" title="1：什么是类加载器"></a>1：什么是类加载器</h4><p>类加载器负责加载java类到java虚拟机的内存空间中，类通常是按需加载，即第一次使用该类时才加载。由于有了类加载器，java运行时系统不需要知道文件与文件系统。负责读取 Java 字节代码，并转换成<code>java.lang.Class</code>类的一个实例。</p>
+<h4 id="2：类加载器种类"><a href="#2：类加载器种类" class="headerlink" title="2：类加载器种类"></a>2：类加载器种类</h4><p>Bootstrap ClassLoader 启动类加载器：这个类加载器负责放在<JAVA_HOME>\lib目录中的，或者被-Xbootclasspath参数所指定的路径中的，并且是虚拟机识别的类库。用户无法直接使用。</p>
+<p>Extension ClassLoader 扩展类加载器：这个类加载器由sun.misc.Launcher$AppClassLoader实现。它负责<JAVA_HOME>\lib\ext目录中的，或者被java.ext.dirs系统变量所指定的路径中的所有类库。用户可以直接使用。</p>
+<p>Application ClassLoader 应用程序类加载器：这个类由sun.misc.Launcher$AppClassLoader实现。是ClassLoader中getSystemClassLoader()方法的返回值。它负责用户路径（ClassPath）所指定的类库。用户可以直接使用。如果用户没有自己定义类加载器，默认使用这个。</p>
+<p>User ClassLoader 自定义加载器：用户自己定义的类加载器。</p>
+<h4 id="3：双亲委派模型"><a href="#3：双亲委派模型" class="headerlink" title="3：双亲委派模型"></a>3：双亲委派模型</h4><p><img src="%E8%81%8A%E8%81%8AJVM/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%99%A8%E5%8F%8C%E4%BA%B2%E5%A7%94%E6%B4%BE%E6%A8%A1%E5%9E%8B.png" alt="类加载器双亲委派模型"></p>
+<p>双亲委派模型要求除了顶层的启动类加载器外，其余的类加载器都应当有自己的父类加载器。</p>
+<p>双亲委派模型的工作过程是：</p>
+<ul>
+<li>如果一个类加载器收到了类加载的请求，它首先不会自己去尝试加载这个类，而是把这个请求委派给父类加载器去完成。</li>
+<li>每一个层次的类加载器都是如此。因此，所有的加载请求最终都应该传送到顶层的启动类加载器中。</li>
+<li>只有当父加载器反馈自己无法完成这个加载请求时（搜索范围中没有找到所需的类），子加载器才会尝试自己去加载。</li>
+</ul>
+<h4 id="4：类加载过程，何时触发初始化"><a href="#4：类加载过程，何时触发初始化" class="headerlink" title="4：类加载过程，何时触发初始化"></a>4：类加载过程，何时触发初始化</h4><p>类加载分为三个步骤：<strong>加载</strong>，<strong>连接</strong>，<strong>初始化</strong>；</p>
+<p>如下图 , 是一个类从加载到使用及卸载的全部生命周期</p>
+<p><img src="%E8%81%8A%E8%81%8A%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E8%BF%87%E7%A8%8B.png" alt="类加载过程"></p>
+<p><strong>加载</strong></p>
+<p>在加载阶段，虚拟机需要完成以下3件事情：</p>
+<p>1）通过一个类的全限定名来获取定义此类的二进制字节流</p>
+<p>2）将这个字节流所代表的静态存储结构转化为方法区的运行时数据结构</p>
+<p>3）在内存中生成一个代表这个类中java.lang.Class对象，作为方法区这个类的各种数据的访问入口</p>
+<p><strong>连接</strong></p>
+<p><strong><u>验证</u></strong></p>
+<p>验证阶段主要包括四个检验过程：文件格式验证、元数据验证、字节码验证和符号引用验证;</p>
+<p><strong><u>准备</u></strong></p>
+<p>为类中的所有静态变量分配内存空间，并为其设置一个初始值（由于还没有产生对象，实例变量将不再此操作范围内）；</p>
+<p><strong><u>解析</u></strong></p>
+<p>将常量池中所有的符号引用转为直接引用（得到类或者字段、方法在内存中的指针或者偏移量，以便直接调用该方法）。这个阶段可以在初始化之后再执行。</p>
+<p><strong>初始化</strong></p>
+<p>初始化是类加载的最后一步，在连接的准备阶段，类变量已赋过一次系统要求的初始值，而在初始化阶段，则是根据程序员自己写的逻辑去初始化类变量和其他资源.</p>
+<p><strong><em>何时触发初始化</em></strong></p>
+<ol>
+<li><strong>为一个类型创建一个新的对象实例时（比如new、反射、序列化）</strong></li>
+<li><strong>调用一个类型的静态方法时（即在字节码中执行invokestatic指令）</strong></li>
+<li><strong>调用一个类型或接口的静态字段，或者对这些静态字段执行赋值操作时（即在字节码中，执行getstatic或者putstatic指令），不过用final修饰的静态字段除外，它被初始化为一个编译时常量表达式</strong></li>
+<li><strong>调用JavaAPI中的反射方法时（比如调用java.lang.Class中的方法，或者java.lang.reflect包中其他类的方法）</strong></li>
+<li><strong>初始化一个类的派生类时（Java虚拟机规范明确要求初始化一个类时，它的超类必须提前完成初始化操作，接口例外）</strong></li>
+<li><strong>JVM启动包含main方法的启动类时。</strong></li>
+</ol>
+<h4 id="5：java热部署实现"><a href="#5：java热部署实现" class="headerlink" title="5：java热部署实现"></a>5：java热部署实现</h4><p>热部署就是在服务器运行时重新部署项目，热加载即在运行时重新加载class，从而升级应用。</p>
+<ul>
+<li>创建自定义的 classloader，加载需要监听改变的类，在 class 文件发生改变的时候，重新加载该类。</li>
+<li>改变创建对象的行为，使他们在创建时使用自定义 classloader 加载的 class。</li>
+</ul>
+<h4 id="6：反射"><a href="#6：反射" class="headerlink" title="6：反射"></a>6：反射</h4><p>反射之中包含了一个「反」字，所以想要解释反射就必须先从「正」开始解释。</p>
+<p>一般情况下，我们使用某个类时必定知道它是什么类，是用来做什么的。于是我们直接对这个类进行实例化，之后使用这个类对象进行操作。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Apple apple = <span class="keyword">new</span> Apple(); <span class="comment">//直接初始化，「正射」</span></span><br><span class="line">apple.setPrice(<span class="number">4</span>);</span><br></pre></td></tr></table></figure>
+<p>上面这样子进行类对象的初始化，我们可以理解为「正」。</p>
+<p>而反射则是一开始并不知道我要初始化的类对象是什么，自然也无法使用 new 关键字来创建对象了。</p>
+<p>这时候，我们使用 JDK 提供的反射 API 进行反射调用：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Class clz = Class.forName(<span class="string">&quot;com.reflect.Apple&quot;</span>);</span><br><span class="line">Method method = clz.getMethod(<span class="string">&quot;setPrice&quot;</span>, <span class="keyword">int</span>.class);</span><br><span class="line">Constructor constructor = clz.getConstructor();</span><br><span class="line">Object object = constructor.newInstance();</span><br><span class="line">method.invoke(object, <span class="number">4</span>);</span><br></pre></td></tr></table></figure>
+<p>上面两段代码的执行结果，其实是完全一样的。但是其思路完全不一样，第一段代码在未运行时就已经确定了要运行的类（Apple），而第二段代码则是在运行时通过字符串值才得知要运行的类（com.reflect.Apple）。</p>
+<p>所以说什么是反射？</p>
+<p><strong>反射就是在运行时才知道要操作的类是什么，并且可以在运行时获取类的完整构造，并调用对应的方法。</strong></p>
+<h4 id="7：cglib和asm，哪些地方用到了这些技术"><a href="#7：cglib和asm，哪些地方用到了这些技术" class="headerlink" title="7：cglib和asm，哪些地方用到了这些技术"></a>7：cglib和asm，哪些地方用到了这些技术</h4><p>cglib（<a target="_blank" rel="noopener" href="http://cglib.sf.net/">Code Generation Library</a>）是一个强大的,高性能,高质量的Code生成类库。它可以在运行期扩展Java类与实现Java接口。<br>cglib封装了asm，可以在运行期动态生成新的class。<br>cglib用于AOP，jdk中的proxy必须基于接口，cglib却没有这个限制。</p>
+<h4 id="8：Tomcat的类加载机制"><a href="#8：Tomcat的类加载机制" class="headerlink" title="8：Tomcat的类加载机制"></a>8：Tomcat的类加载机制</h4><p>参考：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/aspirant/p/8991830.html">图解Tomcat类加载机制(阿里面试题)</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/%E4%BE%83%E4%BE%83%E8%80%8C%E8%B0%88/" rel="tag"># 侃侃而谈</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/03/20/%E8%81%8A%E8%81%8Ajava%E9%9B%86%E5%90%88/" rel="next" title="聊聊java集合">
+                <i class="fa fa-chevron-left"></i> 聊聊java集合
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/03/22/%E8%81%8A%E8%81%8AJVM/" rel="prev" title="聊聊JVM">
+                聊聊JVM <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/cat.jpg"
+                alt="" />
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/%20%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">66</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">16</span>
+                  <span class="site-state-item-name">标签</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/yestermorrow" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%81%8A%E8%81%8A%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6"><span class="nav-number">1.</span> <span class="nav-text">聊聊类加载机制</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6"><span class="nav-number">1.0.0.1.</span> <span class="nav-text">类加载机制</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#1%EF%BC%9A%E4%BB%80%E4%B9%88%E6%98%AF%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%99%A8"><span class="nav-number">1.0.0.2.</span> <span class="nav-text">1：什么是类加载器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2%EF%BC%9A%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%99%A8%E7%A7%8D%E7%B1%BB"><span class="nav-number">1.0.0.3.</span> <span class="nav-text">2：类加载器种类</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3%EF%BC%9A%E5%8F%8C%E4%BA%B2%E5%A7%94%E6%B4%BE%E6%A8%A1%E5%9E%8B"><span class="nav-number">1.0.0.4.</span> <span class="nav-text">3：双亲委派模型</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4%EF%BC%9A%E7%B1%BB%E5%8A%A0%E8%BD%BD%E8%BF%87%E7%A8%8B%EF%BC%8C%E4%BD%95%E6%97%B6%E8%A7%A6%E5%8F%91%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="nav-number">1.0.0.5.</span> <span class="nav-text">4：类加载过程，何时触发初始化</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5%EF%BC%9Ajava%E7%83%AD%E9%83%A8%E7%BD%B2%E5%AE%9E%E7%8E%B0"><span class="nav-number">1.0.0.6.</span> <span class="nav-text">5：java热部署实现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#6%EF%BC%9A%E5%8F%8D%E5%B0%84"><span class="nav-number">1.0.0.7.</span> <span class="nav-text">6：反射</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#7%EF%BC%9Acglib%E5%92%8Casm%EF%BC%8C%E5%93%AA%E4%BA%9B%E5%9C%B0%E6%96%B9%E7%94%A8%E5%88%B0%E4%BA%86%E8%BF%99%E4%BA%9B%E6%8A%80%E6%9C%AF"><span class="nav-number">1.0.0.8.</span> <span class="nav-text">7：cglib和asm，哪些地方用到了这些技术</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#8%EF%BC%9ATomcat%E7%9A%84%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6"><span class="nav-number">1.0.0.9.</span> <span class="nav-text">8：Tomcat的类加载机制</span></a></li></ol></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">yestermorrow</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

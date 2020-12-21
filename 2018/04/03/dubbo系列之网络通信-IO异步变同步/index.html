@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="dubbo," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="dubbo系列之网络通信-IO异步变同步简要dubbo 是基于netty NIO的非阻塞 并行调用通信。 （阻塞  非阻塞  异步  同步 区别 ）dubbo 的通信方式 有3类类型： 1.异步，有返回值 123&lt;dubbo:method name&#x3D;&quot;sayHello&quot; async&#x3D;&quot;true&quot;&gt;&lt;&#x2F;dubbo:method&gt;Futu">
+<meta property="og:type" content="article">
+<meta property="og:title" content="dubbo系列之网络通信-IO异步变同步">
+<meta property="og:url" content="http://yoursite.com/2018/04/03/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1-IO%E5%BC%82%E6%AD%A5%E5%8F%98%E5%90%8C%E6%AD%A5/index.html">
+<meta property="og:site_name" content="Yestermorrow">
+<meta property="og:description" content="dubbo系列之网络通信-IO异步变同步简要dubbo 是基于netty NIO的非阻塞 并行调用通信。 （阻塞  非阻塞  异步  同步 区别 ）dubbo 的通信方式 有3类类型： 1.异步，有返回值 123&lt;dubbo:method name&#x3D;&quot;sayHello&quot; async&#x3D;&quot;true&quot;&gt;&lt;&#x2F;dubbo:method&gt;Futu">
+<meta property="og:locale">
+<meta property="og:image" content="http://yoursite.com/2018/04/03/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1-IO%E5%BC%82%E6%AD%A5%E5%8F%98%E5%90%8C%E6%AD%A5/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1-IO%E5%BC%82%E6%AD%A5%E5%8F%98%E5%90%8C%E6%AD%A5/console.png">
+<meta property="og:image" content="http://yoursite.com/2018/04/03/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1-IO%E5%BC%82%E6%AD%A5%E5%8F%98%E5%90%8C%E6%AD%A5/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1-IO%E5%BC%82%E6%AD%A5%E5%8F%98%E5%90%8C%E6%AD%A5/console1.png">
+<meta property="og:image" content="http://yoursite.com/2018/04/03/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1-IO%E5%BC%82%E6%AD%A5%E5%8F%98%E5%90%8C%E6%AD%A5/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1-IO%E5%BC%82%E6%AD%A5%E5%8F%98%E5%90%8C%E6%AD%A5/console2.png">
+<meta property="article:published_time" content="2018-04-03T06:23:35.000Z">
+<meta property="article:modified_time" content="2018-08-28T13:56:12.000Z">
+<meta property="article:author" content="yestermorrow">
+<meta property="article:tag" content="dubbo">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2018/04/03/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1-IO%E5%BC%82%E6%AD%A5%E5%8F%98%E5%90%8C%E6%AD%A5/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1-IO%E5%BC%82%E6%AD%A5%E5%8F%98%E5%90%8C%E6%AD%A5/console.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/04/03/dubbo系列之网络通信-IO异步变同步/"/>
+
+
+
+
+
+  <title>dubbo系列之网络通信-IO异步变同步 | Yestermorrow</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 5.3.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Yestermorrow</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/%20" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/%20" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/04/03/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1-IO%E5%BC%82%E6%AD%A5%E5%8F%98%E5%90%8C%E6%AD%A5/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/cat.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Yestermorrow">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">dubbo系列之网络通信-IO异步变同步</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-04-03T14:23:35+08:00">
+                2018-04-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="dubbo系列之网络通信-IO异步变同步"><a href="#dubbo系列之网络通信-IO异步变同步" class="headerlink" title="dubbo系列之网络通信-IO异步变同步"></a>dubbo系列之网络通信-IO异步变同步</h1><h3 id="简要"><a href="#简要" class="headerlink" title="简要"></a>简要</h3><p>dubbo 是基于netty NIO的非阻塞 并行调用通信。 （阻塞  非阻塞  异步  同步 区别 ）<br>dubbo 的通信方式 有3类类型：</p>
+<p>1.异步，有返回值</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dubbo:method</span> <span class="attr">name</span>=<span class="string">&quot;sayHello&quot;</span> <span class="attr">async</span>=<span class="string">&quot;true&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">dubbo:method</span>&gt;</span></span><br><span class="line">Future<span class="tag">&lt;<span class="name">String</span>&gt;</span> temp= RpcContext.getContext().getFuture();</span><br><span class="line">hello=temp.get();</span><br></pre></td></tr></table></figure>
+<p>2.异步，无返回值</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dubbo:method</span> <span class="attr">name</span>=<span class="string">&quot;sayHello&quot;</span> <span class="attr">return</span>=<span class="string">&quot;false&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">dubbo:method</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>3.异步，变同步（默认的通信方式）</p>
+<h3 id="源码介绍"><a href="#源码介绍" class="headerlink" title="源码介绍"></a>源码介绍</h3><p>三种不同通信方式在代码中判断就是在前面一直有提到过的DubboInvoker类</p>
+<h4 id="DubboInvoker类"><a href="#DubboInvoker类" class="headerlink" title="DubboInvoker类"></a>DubboInvoker类</h4><h5 id="doInvoker"><a href="#doInvoker" class="headerlink" title="doInvoker()"></a>doInvoker()</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> Result <span class="title">doInvoke</span><span class="params">(<span class="keyword">final</span> Invocation invocation)</span> <span class="keyword">throws</span> Throwable </span>&#123;</span><br><span class="line">   ...</span><br><span class="line">   <span class="keyword">if</span> (isOneway) &#123;<span class="comment">//2：异步，无返回值</span></span><br><span class="line">                <span class="keyword">boolean</span> isSent = getUrl().getMethodParameter(methodName, Constants.SENT_KEY, <span class="keyword">false</span>);</span><br><span class="line">                currentClient.send(inv, isSent);</span><br><span class="line">                RpcContext.getContext().setFuture(<span class="keyword">null</span>);</span><br><span class="line">                <span class="keyword">return</span> <span class="keyword">new</span> RpcResult();</span><br><span class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span> (isAsync) &#123;<span class="comment">//1：异步，有返回值</span></span><br><span class="line">                ResponseFuture future = currentClient.request(inv, timeout);</span><br><span class="line">                RpcContext.getContext().setFuture(<span class="keyword">new</span> FutureAdapter&lt;Object&gt;(future));</span><br><span class="line">                <span class="keyword">return</span> <span class="keyword">new</span> RpcResult();</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;<span class="comment">//3.异步，变同步（默认的通信方式）</span></span><br><span class="line">                RpcContext.getContext().setFuture(<span class="keyword">null</span>);</span><br><span class="line">                <span class="comment">//发送请求</span></span><br><span class="line">                <span class="keyword">return</span> (Result) currentClient.request(inv, timeout).get();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">   ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>那通信方式又是在哪设置的呢？</p>
+<h4 id="dubbo-demo-consumer-xml"><a href="#dubbo-demo-consumer-xml" class="headerlink" title="dubbo-demo-consumer.xml"></a>dubbo-demo-consumer.xml</h4><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dubbo:reference</span> <span class="attr">id</span>=<span class="string">&quot;demoService&quot;</span> <span class="attr">check</span>=<span class="string">&quot;false&quot;</span> <span class="attr">interface</span>=<span class="string">&quot;com.alibaba.dubbo.demo.DemoService&quot;</span> /&gt;</span></span><br></pre></td></tr></table></figure>
+<p>原来的配置是这样的，默认就是进去3.异步，变同步。</p>
+<p><strong>1：异步，有返回值</strong></p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dubbo:reference</span> <span class="attr">id</span>=<span class="string">&quot;demoService&quot;</span> <span class="attr">check</span>=<span class="string">&quot;false&quot;</span> <span class="attr">interface</span>=<span class="string">&quot;com.alibaba.dubbo.demo.DemoService&quot;</span> &gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dubbo:method</span> <span class="attr">name</span>=<span class="string">&quot;sayHello&quot;</span> <span class="attr">async</span>=<span class="string">&quot;true&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">dubbo:method</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dubbo:reference</span>&gt;</span> </span><br></pre></td></tr></table></figure>
+<p>启动服务端和客户端</p>
+<p>看一下DemoAction类的打印效果</p>
+<p><img src="dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1-IO%E5%BC%82%E6%AD%A5%E5%8F%98%E5%90%8C%E6%AD%A5/console.png" alt="console"></p>
+<p>打印的全是null了。</p>
+<h5 id="断点进入doInvoke"><a href="#断点进入doInvoke" class="headerlink" title="断点进入doInvoke()"></a>断点进入doInvoke()</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">else</span> <span class="keyword">if</span> (isAsync) &#123;<span class="comment">//1：异步，有返回值</span></span><br><span class="line">    ResponseFuture future = currentClient.request(inv, timeout);</span><br><span class="line">    RpcContext.getContext().setFuture(<span class="keyword">new</span> FutureAdapter&lt;Object&gt;(future));</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> RpcResult();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我们修改一下DemoAction的hello打印值</p>
+<h5 id="start"><a href="#start" class="headerlink" title="start()"></a>start()</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">start</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; Integer.MAX_VALUE; i++) &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            String hello = demoService.sayHello(<span class="string">&quot;world&quot;</span> + i);</span><br><span class="line">            Future&lt;String&gt; temp = RpcContext.getContext().getFuture();</span><br><span class="line">            hello=temp.get();</span><br><span class="line">            System.out.println(<span class="string">&quot;[&quot;</span> + <span class="keyword">new</span> SimpleDateFormat(<span class="string">&quot;HH:mm:ss&quot;</span>).format(<span class="keyword">new</span> Date()) + <span class="string">&quot;] &quot;</span> + hello);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">        Thread.sleep(<span class="number">2000</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这样打印的结果就不再是null了</p>
+<p><img src="dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1-IO%E5%BC%82%E6%AD%A5%E5%8F%98%E5%90%8C%E6%AD%A5/console1.png" alt="console1"></p>
+<p><strong>2：异步，无返回值</strong></p>
+<h4 id="dubbo-demo-consumer-xml-1"><a href="#dubbo-demo-consumer-xml-1" class="headerlink" title="dubbo-demo-consumer.xml"></a>dubbo-demo-consumer.xml</h4><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dubbo:reference</span> <span class="attr">id</span>=<span class="string">&quot;demoService&quot;</span> <span class="attr">check</span>=<span class="string">&quot;false&quot;</span> <span class="attr">interface</span>=<span class="string">&quot;com.alibaba.dubbo.demo.DemoService&quot;</span> &gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dubbo:method</span> <span class="attr">name</span>=<span class="string">&quot;sayHello&quot;</span> <span class="attr">return</span>=<span class="string">&quot;false&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">dubbo:method</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dubbo:reference</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<h4 id="DemoAction类"><a href="#DemoAction类" class="headerlink" title="DemoAction类"></a>DemoAction类</h4><h5 id="start-1"><a href="#start-1" class="headerlink" title="start()"></a>start()</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"> <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">start</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; Integer.MAX_VALUE; i++) &#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                String hello = demoService.sayHello(<span class="string">&quot;world&quot;</span> + i);</span><br><span class="line"><span class="comment">//                Future&lt;String&gt; temp = RpcContext.getContext().getFuture();</span></span><br><span class="line"><span class="comment">//                hello=temp.get();</span></span><br><span class="line">                System.out.println(<span class="string">&quot;[&quot;</span> + <span class="keyword">new</span> SimpleDateFormat(<span class="string">&quot;HH:mm:ss&quot;</span>).format(<span class="keyword">new</span> Date()) + <span class="string">&quot;] &quot;</span> + hello);</span><br><span class="line">            &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">                e.printStackTrace();</span><br><span class="line">            &#125;</span><br><span class="line">            Thread.sleep(<span class="number">2000</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p><img src="dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1-IO%E5%BC%82%E6%AD%A5%E5%8F%98%E5%90%8C%E6%AD%A5/console2.png">打印结果就又变null了。</p>
+<p>看了前面两种情况，我们大致了解了，由于demoService.sayHello(“world” + i)方法是同步的，所以在正常异步情况下打印这个就是null值，那怎么才能获取这个值呢？接着看第三者情况。</p>
+<p>下面就是这篇博客的重点了。</p>
+<p><strong>3：异步，变同步</strong></p>
+<p>问题：当前线程怎么让它 “暂停，等结果回来后，再执行”？</p>
+<p>看代码</p>
+<h4 id="DubboInvoker类-1"><a href="#DubboInvoker类-1" class="headerlink" title="DubboInvoker类"></a>DubboInvoker类</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">else</span> &#123;<span class="comment">//3.异步，变同步（默认的通信方式）</span></span><br><span class="line">    RpcContext.getContext().setFuture(<span class="keyword">null</span>);</span><br><span class="line">    <span class="comment">//发送请求</span></span><br><span class="line">    <span class="keyword">return</span> (Result) currentClient.request(inv, timeout).get();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="HeaderExchangeChannel类"><a href="#HeaderExchangeChannel类" class="headerlink" title="HeaderExchangeChannel类"></a>HeaderExchangeChannel类</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> ResponseFuture <span class="title">request</span><span class="params">(Object request, <span class="keyword">int</span> timeout)</span> <span class="keyword">throws</span> RemotingException </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (closed) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> RemotingException(<span class="keyword">this</span>.getLocalAddress(), <span class="keyword">null</span>, <span class="string">&quot;Failed to send request &quot;</span> + request + <span class="string">&quot;, cause: The channel &quot;</span> + <span class="keyword">this</span> + <span class="string">&quot; is closed!&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// create request.</span></span><br><span class="line">    Request req = <span class="keyword">new</span> Request();</span><br><span class="line">    req.setVersion(<span class="string">&quot;2.0.0&quot;</span>);</span><br><span class="line">    req.setTwoWay(<span class="keyword">true</span>);</span><br><span class="line">    req.setData(request);</span><br><span class="line">    DefaultFuture future = <span class="keyword">new</span> DefaultFuture(channel, req, timeout);</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        channel.send(req);<span class="comment">//利用netty异步发送请求</span></span><br><span class="line">    &#125; <span class="keyword">catch</span> (RemotingException e) &#123;</span><br><span class="line">        future.cancel();</span><br><span class="line">        <span class="keyword">throw</span> e;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> future;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>所以DubboInvoker里面是返回的DefaultFuture的get()方法。</p>
+<h4 id="DefaultFuture类"><a href="#DefaultFuture类" class="headerlink" title="DefaultFuture类"></a>DefaultFuture类</h4><h5 id="get"><a href="#get" class="headerlink" title="get()"></a>get()</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> Condition done = lock.newCondition();<span class="comment">//jdk多线程里面的condition</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> Object <span class="title">get</span><span class="params">(<span class="keyword">int</span> timeout)</span> <span class="keyword">throws</span> RemotingException </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (timeout &lt;= <span class="number">0</span>) &#123;</span><br><span class="line">        timeout = Constants.DEFAULT_TIMEOUT;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (!isDone()) &#123;<span class="comment">//在没有得到服务端返回结果时</span></span><br><span class="line">        <span class="keyword">long</span> start = System.currentTimeMillis();</span><br><span class="line">        lock.lock();<span class="comment">//加锁</span></span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">while</span> (!isDone()) &#123;<span class="comment">//死循环----阻塞</span></span><br><span class="line">                done.await(timeout, TimeUnit.MILLISECONDS);<span class="comment">//等待</span></span><br><span class="line">                <span class="keyword">if</span> (isDone() || System.currentTimeMillis() - start &gt; timeout) &#123;</span><br><span class="line">                    <span class="keyword">break</span>;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(e);</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            lock.unlock();<span class="comment">//解锁</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (!isDone()) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> TimeoutException(sent &gt; <span class="number">0</span>, channel, getTimeoutMessage(<span class="keyword">false</span>));</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> returnFromResponse();<span class="comment">//返回response结果</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">isDone</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> response != <span class="keyword">null</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>当reponse拿到数据后，isDone()就为true，就会结束死循环。</p>
+<p>我们再看一下上一篇博客介绍的consumer接收数据的处理</p>
+<h4 id="DefaultFuture类-1"><a href="#DefaultFuture类-1" class="headerlink" title="DefaultFuture类"></a>DefaultFuture类</h4><h5 id="doReceived"><a href="#doReceived" class="headerlink" title="doReceived"></a>doReceived</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">doReceived</span><span class="params">(Response res)</span> </span>&#123;</span><br><span class="line">    lock.lock();<span class="comment">//加锁</span></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        response = res;<span class="comment">//复制</span></span><br><span class="line">        <span class="keyword">if</span> (done != <span class="keyword">null</span>) &#123;</span><br><span class="line">            done.signal();<span class="comment">//唤醒</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        lock.unlock();<span class="comment">//解锁</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (callback != <span class="keyword">null</span>) &#123;</span><br><span class="line">        invokeCallback(callback);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>所以等结果回来，就唤醒。这样，返回结果就不再是null了。</p>
+<p>问题：socket是一个全双工的通信方式，那么在多线程的情况下，如何知道那个返回结果对应原先那条线程的调用？</p>
+<p>看源码</p>
+<h4 id="DefaultFuture类-2"><a href="#DefaultFuture类-2" class="headerlink" title="DefaultFuture类"></a>DefaultFuture类</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">DefaultFuture</span><span class="params">(Channel channel, Request request, <span class="keyword">int</span> timeout)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.channel = channel;</span><br><span class="line">    <span class="keyword">this</span>.request = request;</span><br><span class="line">    <span class="keyword">this</span>.id = request.getId();<span class="comment">//id是全局唯一的</span></span><br><span class="line">    <span class="keyword">this</span>.timeout = timeout &gt; <span class="number">0</span> ? timeout : channel.getUrl().getPositiveParameter(Constants.TIMEOUT_KEY, Constants.DEFAULT_TIMEOUT);</span><br><span class="line">    <span class="comment">// put into waiting map.</span></span><br><span class="line">    FUTURES.put(id, <span class="keyword">this</span>);<span class="comment">//将id和线程一起存储在map里面</span></span><br><span class="line">    CHANNELS.put(id, channel);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="Request类"><a href="#Request类" class="headerlink" title="Request类"></a>Request类</h4><h5 id="newId-——id初始化"><a href="#newId-——id初始化" class="headerlink" title="newId()——id初始化"></a>newId()——id初始化</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">long</span> <span class="title">newId</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">// getAndIncrement()增长到MAX_VALUE时，再增长会变为MIN_VALUE，负数也可以做为ID</span></span><br><span class="line">    <span class="keyword">return</span> INVOKE_ID.getAndIncrement();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="received"><a href="#received" class="headerlink" title="received()"></a>received()</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">received</span><span class="params">(Channel channel, Response response)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        DefaultFuture future = FUTURES.remove(response.getId());<span class="comment">//map中删除这条数据,并将值赋给future</span></span><br><span class="line">        <span class="keyword">if</span> (future != <span class="keyword">null</span>) &#123;</span><br><span class="line">            future.doReceived(response);<span class="comment">//唤醒</span></span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;<span class="comment">// 超时</span></span><br><span class="line">            logger.warn(<span class="string">&quot;The timeout response finally returned at &quot;</span></span><br><span class="line">                    + (<span class="keyword">new</span> SimpleDateFormat(<span class="string">&quot;yyyy-MM-dd HH:mm:ss.SSS&quot;</span>).format(<span class="keyword">new</span> Date()))</span><br><span class="line">                    + <span class="string">&quot;, response &quot;</span> + response</span><br><span class="line">                    + (channel == <span class="keyword">null</span> ? <span class="string">&quot;&quot;</span> : <span class="string">&quot;, channel: &quot;</span> + channel.getLocalAddress()</span><br><span class="line">                    + <span class="string">&quot; -&gt; &quot;</span> + channel.getRemoteAddress()));</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        CHANNELS.remove(response.getId());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在consumer接收数据时，会将FUTURES中的这条数据删除。</p>
+<p>所以上面问题的答案就是——&gt;通过一个全局唯一的ID来做consumer 和 provider 来回传输。</p>
+<p><strong>单工 全双工 半双工的区别？</strong></p>
+<p>单工：在同一时间只允许一方向另一方传送信息，而另一方不能向一方传送 </p>
+<p>全双工：是指在发送数据的同时也能够接收数据，两者同步进行，这好像我们平时打电话一样，说话的同时也能够听到对方的声音。目前的网卡一般都支持全双工。 </p>
+<p>半双工：所谓半双工就是指一个时间段内只有一个动作发生。举个简单例子，一条窄窄的马路，同时只能有一辆车通过，当目前有两量车对开，这种情况下就只能一辆先过，等到头后另一辆再开，这个例子就形象的说明了半双工的原理。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/dubbo/" rel="tag"># dubbo</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/04/03/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1-consumer%E7%9A%84%E6%8E%A5%E6%94%B6%E5%8E%9F%E7%90%86/" rel="next" title="dubbo系列之网络通信-consumer的接收原理">
+                <i class="fa fa-chevron-left"></i> dubbo系列之网络通信-consumer的接收原理
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/04/03/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1%E7%BC%96%E7%A0%81%E8%A7%A3%E7%A0%81-consumer%E8%AF%B7%E6%B1%82%E7%BC%96%E7%A0%81/" rel="prev" title="dubbo系列之网络通信编码解码-consumer请求编码">
+                dubbo系列之网络通信编码解码-consumer请求编码 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/cat.jpg"
+                alt="" />
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/%20%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">66</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">16</span>
+                  <span class="site-state-item-name">标签</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/yestermorrow" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1-IO%E5%BC%82%E6%AD%A5%E5%8F%98%E5%90%8C%E6%AD%A5"><span class="nav-number">1.</span> <span class="nav-text">dubbo系列之网络通信-IO异步变同步</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AE%80%E8%A6%81"><span class="nav-number">1.0.1.</span> <span class="nav-text">简要</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BA%90%E7%A0%81%E4%BB%8B%E7%BB%8D"><span class="nav-number">1.0.2.</span> <span class="nav-text">源码介绍</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#DubboInvoker%E7%B1%BB"><span class="nav-number">1.0.2.1.</span> <span class="nav-text">DubboInvoker类</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#doInvoker"><span class="nav-number">1.0.2.1.1.</span> <span class="nav-text">doInvoker()</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#dubbo-demo-consumer-xml"><span class="nav-number">1.0.2.2.</span> <span class="nav-text">dubbo-demo-consumer.xml</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%96%AD%E7%82%B9%E8%BF%9B%E5%85%A5doInvoke"><span class="nav-number">1.0.2.2.1.</span> <span class="nav-text">断点进入doInvoke()</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#start"><span class="nav-number">1.0.2.2.2.</span> <span class="nav-text">start()</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#dubbo-demo-consumer-xml-1"><span class="nav-number">1.0.2.3.</span> <span class="nav-text">dubbo-demo-consumer.xml</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#DemoAction%E7%B1%BB"><span class="nav-number">1.0.2.4.</span> <span class="nav-text">DemoAction类</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#start-1"><span class="nav-number">1.0.2.4.1.</span> <span class="nav-text">start()</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#DubboInvoker%E7%B1%BB-1"><span class="nav-number">1.0.2.5.</span> <span class="nav-text">DubboInvoker类</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#HeaderExchangeChannel%E7%B1%BB"><span class="nav-number">1.0.2.6.</span> <span class="nav-text">HeaderExchangeChannel类</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#DefaultFuture%E7%B1%BB"><span class="nav-number">1.0.2.7.</span> <span class="nav-text">DefaultFuture类</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#get"><span class="nav-number">1.0.2.7.1.</span> <span class="nav-text">get()</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#DefaultFuture%E7%B1%BB-1"><span class="nav-number">1.0.2.8.</span> <span class="nav-text">DefaultFuture类</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#doReceived"><span class="nav-number">1.0.2.8.1.</span> <span class="nav-text">doReceived</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#DefaultFuture%E7%B1%BB-2"><span class="nav-number">1.0.2.9.</span> <span class="nav-text">DefaultFuture类</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Request%E7%B1%BB"><span class="nav-number">1.0.2.10.</span> <span class="nav-text">Request类</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#newId-%E2%80%94%E2%80%94id%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="nav-number">1.0.2.10.1.</span> <span class="nav-text">newId()——id初始化</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#received"><span class="nav-number">1.0.2.10.2.</span> <span class="nav-text">received()</span></a></li></ol></li></ol></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">yestermorrow</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

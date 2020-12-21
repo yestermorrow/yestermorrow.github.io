@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Netty," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="Netty之入门第一步-服务端启动前言从需求出发，最原始的jdk代码开始一步步看，再看Netty封装了哪些，每个组件充当了什么样的角色，才是这篇文章的立意。 今天这篇文章我会从传统的写法入手，进一步发展到Netty每个组件的含义，Netty包装了什么。 案例完整代码看本机netty-study工程 Demo  ——  一个服务端和客户端的socket例子 123456789101112131415">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Netty之入门第一步-服务端启动">
+<meta property="og:url" content="http://yoursite.com/2019/08/19/Netty%E4%B9%8B%E5%85%A5%E9%97%A8%E7%AC%AC%E4%B8%80%E6%AD%A5-%E6%9C%8D%E5%8A%A1%E7%AB%AF%E5%90%AF%E5%8A%A8/index.html">
+<meta property="og:site_name" content="Yestermorrow">
+<meta property="og:description" content="Netty之入门第一步-服务端启动前言从需求出发，最原始的jdk代码开始一步步看，再看Netty封装了哪些，每个组件充当了什么样的角色，才是这篇文章的立意。 今天这篇文章我会从传统的写法入手，进一步发展到Netty每个组件的含义，Netty包装了什么。 案例完整代码看本机netty-study工程 Demo  ——  一个服务端和客户端的socket例子 123456789101112131415">
+<meta property="og:locale">
+<meta property="og:image" content="http://yoursite.com/2019/08/19/Netty%E4%B9%8B%E5%85%A5%E9%97%A8%E7%AC%AC%E4%B8%80%E6%AD%A5-%E6%9C%8D%E5%8A%A1%E7%AB%AF%E5%90%AF%E5%8A%A8/Netty%E4%B9%8B%E5%85%A5%E9%97%A8%E7%AC%AC%E4%B8%80%E6%AD%A5-%E6%9C%8D%E5%8A%A1%E7%AB%AF%E5%90%AF%E5%8A%A8/1566265543129.jpg">
+<meta property="og:image" content="http://yoursite.com/2019/08/19/Netty%E4%B9%8B%E5%85%A5%E9%97%A8%E7%AC%AC%E4%B8%80%E6%AD%A5-%E6%9C%8D%E5%8A%A1%E7%AB%AF%E5%90%AF%E5%8A%A8/Netty%E4%B9%8B%E5%85%A5%E9%97%A8%E7%AC%AC%E4%B8%80%E6%AD%A5-%E6%9C%8D%E5%8A%A1%E7%AB%AF%E5%90%AF%E5%8A%A8/1566283214179.jpg">
+<meta property="og:image" content="http://yoursite.com/2019/08/19/Netty%E4%B9%8B%E5%85%A5%E9%97%A8%E7%AC%AC%E4%B8%80%E6%AD%A5-%E6%9C%8D%E5%8A%A1%E7%AB%AF%E5%90%AF%E5%8A%A8/Netty%E4%B9%8B%E5%85%A5%E9%97%A8%E7%AC%AC%E4%B8%80%E6%AD%A5-%E6%9C%8D%E5%8A%A1%E7%AB%AF%E5%90%AF%E5%8A%A8/1566897070224.jpg">
+<meta property="og:image" content="http://yoursite.com/2019/08/19/Netty%E4%B9%8B%E5%85%A5%E9%97%A8%E7%AC%AC%E4%B8%80%E6%AD%A5-%E6%9C%8D%E5%8A%A1%E7%AB%AF%E5%90%AF%E5%8A%A8/Netty%E4%B9%8B%E5%85%A5%E9%97%A8%E7%AC%AC%E4%B8%80%E6%AD%A5-%E6%9C%8D%E5%8A%A1%E7%AB%AF%E5%90%AF%E5%8A%A8/1566899796657.jpg">
+<meta property="og:image" content="http://yoursite.com/2019/08/19/Netty%E4%B9%8B%E5%85%A5%E9%97%A8%E7%AC%AC%E4%B8%80%E6%AD%A5-%E6%9C%8D%E5%8A%A1%E7%AB%AF%E5%90%AF%E5%8A%A8/Netty%E4%B9%8B%E5%85%A5%E9%97%A8%E7%AC%AC%E4%B8%80%E6%AD%A5-%E6%9C%8D%E5%8A%A1%E7%AB%AF%E5%90%AF%E5%8A%A8/1566459016187.jpg">
+<meta property="article:published_time" content="2019-08-19T03:35:46.000Z">
+<meta property="article:modified_time" content="2019-08-29T01:28:40.000Z">
+<meta property="article:author" content="yestermorrow">
+<meta property="article:tag" content="Netty">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2019/08/19/Netty%E4%B9%8B%E5%85%A5%E9%97%A8%E7%AC%AC%E4%B8%80%E6%AD%A5-%E6%9C%8D%E5%8A%A1%E7%AB%AF%E5%90%AF%E5%8A%A8/Netty%E4%B9%8B%E5%85%A5%E9%97%A8%E7%AC%AC%E4%B8%80%E6%AD%A5-%E6%9C%8D%E5%8A%A1%E7%AB%AF%E5%90%AF%E5%8A%A8/1566265543129.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/08/19/Netty之入门第一步-服务端启动/"/>
+
+
+
+
+
+  <title>Netty之入门第一步-服务端启动 | Yestermorrow</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 5.3.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Yestermorrow</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/%20" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/%20" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/08/19/Netty%E4%B9%8B%E5%85%A5%E9%97%A8%E7%AC%AC%E4%B8%80%E6%AD%A5-%E6%9C%8D%E5%8A%A1%E7%AB%AF%E5%90%AF%E5%8A%A8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/cat.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Yestermorrow">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Netty之入门第一步-服务端启动</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-19T11:35:46+08:00">
+                2019-08-19
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="Netty之入门第一步-服务端启动"><a href="#Netty之入门第一步-服务端启动" class="headerlink" title="Netty之入门第一步-服务端启动"></a>Netty之入门第一步-服务端启动</h1><h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>从需求出发，最原始的jdk代码开始一步步看，再看Netty封装了哪些，每个组件充当了什么样的角色，才是这篇文章的立意。</p>
+<p>今天这篇文章我会从传统的写法入手，进一步发展到Netty每个组件的含义，Netty包装了什么。</p>
+<h3 id="案例"><a href="#案例" class="headerlink" title="案例"></a>案例</h3><p>完整代码看本机netty-study工程</p>
+<p>Demo  ——  一个服务端和客户端的socket例子</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.imooc.netty.ch2;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"><span class="keyword">import</span> java.net.ServerSocket;</span><br><span class="line"><span class="keyword">import</span> java.net.Socket;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Server</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> ServerSocket serverSocket;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Server</span><span class="params">(<span class="keyword">int</span> port)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">this</span>.serverSocket = <span class="keyword">new</span> ServerSocket(port);</span><br><span class="line">            System.out.println(<span class="string">&quot;服务端启动成功，端口:&quot;</span> + port);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException exception) &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;服务端启动失败&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">start</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">new</span> Thread(<span class="keyword">new</span> Runnable() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">                doStart();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;).start();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">doStart</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">while</span> (<span class="keyword">true</span>) &#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                Socket client = serverSocket.accept();</span><br><span class="line">                <span class="keyword">new</span> ClientHandler(client).start();</span><br><span class="line">            &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">                System.out.println(<span class="string">&quot;服务端异常&quot;</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.imooc.netty.ch2;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"><span class="keyword">import</span> java.io.InputStream;</span><br><span class="line"><span class="keyword">import</span> java.net.Socket;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ClientHandler</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> MAX_DATA_LEN = <span class="number">1024</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Socket socket;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">ClientHandler</span><span class="params">(Socket socket)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.socket = socket;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">start</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;新客户端接入&quot;</span>);</span><br><span class="line">        <span class="keyword">new</span> Thread(<span class="keyword">new</span> Runnable() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">                doStart();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;).start();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">doStart</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            InputStream inputStream = socket.getInputStream();</span><br><span class="line">            <span class="keyword">while</span> (<span class="keyword">true</span>) &#123;</span><br><span class="line">                <span class="keyword">byte</span>[] data = <span class="keyword">new</span> <span class="keyword">byte</span>[MAX_DATA_LEN];</span><br><span class="line">                <span class="keyword">int</span> len;</span><br><span class="line">                <span class="keyword">while</span> ((len = inputStream.read(data)) != -<span class="number">1</span>) &#123;</span><br><span class="line">                    String message = <span class="keyword">new</span> String(data, <span class="number">0</span>, len);</span><br><span class="line">                    System.out.println(<span class="string">&quot;客户端传来消息: &quot;</span> + message);</span><br><span class="line">                    socket.getOutputStream().write(data);</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Server类里面有两个线程，一个是main线程，一个是客户端的接收处理线程，accept阻塞等待client的链接，每获得一个连接就交给一个 ClientHandler去处理。一直阻塞等待处理客户端的连接和数据</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.imooc.netty.ch2;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"><span class="keyword">import</span> java.net.Socket;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Client</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String HOST = <span class="string">&quot;127.0.0.1&quot;</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> PORT = <span class="number">8000</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> SLEEP_TIME = <span class="number">5000</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        <span class="keyword">final</span> Socket socket = <span class="keyword">new</span> Socket(HOST, PORT);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">new</span> Thread(<span class="keyword">new</span> Runnable() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">                System.out.println(<span class="string">&quot;客户端启动成功!&quot;</span>);</span><br><span class="line">                <span class="keyword">while</span> (<span class="keyword">true</span>) &#123;</span><br><span class="line">                    <span class="keyword">try</span> &#123;</span><br><span class="line">                        String message = <span class="string">&quot;hello world&quot;</span>;</span><br><span class="line">                        System.out.println(<span class="string">&quot;客户端发送数据: &quot;</span> + message);</span><br><span class="line">                        socket.getOutputStream().write(message.getBytes());</span><br><span class="line">                    &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">                        System.out.println(<span class="string">&quot;写数据出错!&quot;</span>);</span><br><span class="line">                    &#125;</span><br><span class="line">                    sleep();</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;).start();</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">sleep</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            Thread.sleep(SLEEP_TIME);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>客户端也是两个线程，一个main线程，一个线程向server发送数据。</p>
+<h4 id="Netty对socket的抽象"><a href="#Netty对socket的抽象" class="headerlink" title="Netty对socket的抽象"></a>Netty对socket的抽象</h4><p><img src="Netty%E4%B9%8B%E5%85%A5%E9%97%A8%E7%AC%AC%E4%B8%80%E6%AD%A5-%E6%9C%8D%E5%8A%A1%E7%AB%AF%E5%90%AF%E5%8A%A8/1566265543129.jpg"></p>
+<h4 id="Netty基本组件，与demo里面对应"><a href="#Netty基本组件，与demo里面对应" class="headerlink" title="Netty基本组件，与demo里面对应"></a>Netty基本组件，与demo里面对应</h4><p><strong>ServerBootstrap</strong></p>
+<p>ServerBootstrap为Netty服务端的启动辅助类，它提供了一系列的方法用于设置服务启动相关的参数。</p>
+<p><strong>EventLoopGroup</strong></p>
+<p>​            <em>NioEventLoopGroup  ———— &gt; Thread</em></p>
+<p>这个Thread包括两部分 一个是服务端接口客户端连接的线程，第二个是处理每个连接的读写</p>
+<p><img src="Netty%E4%B9%8B%E5%85%A5%E9%97%A8%E7%AC%AC%E4%B8%80%E6%AD%A5-%E6%9C%8D%E5%8A%A1%E7%AB%AF%E5%90%AF%E5%8A%A8/1566283214179.jpg"></p>
+<p>client的Socket    server的ServerSocket   Netty将jdk的socketChannel封装成了NioSocketChannel</p>
+<p>运行任务来处理在连接的生命周期内发生的事件是任何网络框架的基本功能。与之相应的编程上的构造通常被称为<em>事件循环</em> ———— 一个Netty使用了 interface io.netty.channel.EventLoop来适配的术语。主要职责就是处理所有注册到本线程多路复用器Selector上的Channel。</p>
+<p><strong>ByteBuf</strong></p>
+<p>​        <em>ByteBuf  ———— &gt; IO Bytes</em></p>
+<p>java NIO提供了ByteBuffer作为它的字节容器，但是这个类使用起来过于复杂，而且也有些繁琐。Netty的ByteBuffer替代品是ByteBuf，一个强大的实现，即解决了JDK API的局限性，又为网络应用程序的开发者提供了更好的API。</p>
+<p><strong>ChannelHandler</strong></p>
+<p>​        <em>ChannelHandler  ————  &gt;  Logic</em></p>
+<p>ChannelHandler充当了所有处理入站和出站数据的应用程序逻辑的容器。</p>
+<p><strong>ChannelPipeline</strong></p>
+<p>​        <em>Pipeline  ———— &gt; Logic Chain</em></p>
+<p> ChannelPipeline为ChannelHandler链提供了容器，并定义了用于在该链上的传播入站和出站事件流的API 。当Cahnnel被创建时，它会被自动地分配到它专属的CahnnelPipeline。             </p>
+<h4 id="Netty服务端启动标准demo"><a href="#Netty服务端启动标准demo" class="headerlink" title="Netty服务端启动标准demo"></a>Netty服务端启动标准demo</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"> * Copyright 2012 The Netty Project</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * The Netty Project licenses this file to you under the Apache License,</span></span><br><span class="line"><span class="comment"> * version 2.0 (the &quot;License&quot;); you may not use this file except in compliance</span></span><br><span class="line"><span class="comment"> * with the License. You may obtain a copy of the License at:</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> *   http://www.apache.org/licenses/LICENSE-2.0</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * Unless required by applicable law or agreed to in writing, software</span></span><br><span class="line"><span class="comment"> * distributed under the License is distributed on an &quot;AS IS&quot; BASIS, WITHOUT</span></span><br><span class="line"><span class="comment"> * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the</span></span><br><span class="line"><span class="comment"> * License for the specific language governing permissions and limitations</span></span><br><span class="line"><span class="comment"> * under the License.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">package</span> io.netty.example.echo;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> io.netty.bootstrap.ServerBootstrap;</span><br><span class="line"><span class="keyword">import</span> io.netty.channel.ChannelFuture;</span><br><span class="line"><span class="keyword">import</span> io.netty.channel.ChannelInitializer;</span><br><span class="line"><span class="keyword">import</span> io.netty.channel.ChannelOption;</span><br><span class="line"><span class="keyword">import</span> io.netty.channel.ChannelPipeline;</span><br><span class="line"><span class="keyword">import</span> io.netty.channel.EventLoopGroup;</span><br><span class="line"><span class="keyword">import</span> io.netty.channel.nio.NioEventLoopGroup;</span><br><span class="line"><span class="keyword">import</span> io.netty.channel.socket.SocketChannel;</span><br><span class="line"><span class="keyword">import</span> io.netty.channel.socket.nio.NioServerSocketChannel;</span><br><span class="line"><span class="keyword">import</span> io.netty.handler.logging.LogLevel;</span><br><span class="line"><span class="keyword">import</span> io.netty.handler.logging.LoggingHandler;</span><br><span class="line"><span class="keyword">import</span> io.netty.handler.ssl.SslContext;</span><br><span class="line"><span class="keyword">import</span> io.netty.handler.ssl.SslContextBuilder;</span><br><span class="line"><span class="keyword">import</span> io.netty.handler.ssl.util.SelfSignedCertificate;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Echoes back any received data from a client.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">EchoServer</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">boolean</span> SSL = System.getProperty(<span class="string">&quot;ssl&quot;</span>) != <span class="keyword">null</span>;</span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> PORT = Integer.parseInt(System.getProperty(<span class="string">&quot;port&quot;</span>, <span class="string">&quot;8007&quot;</span>));</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        <span class="comment">// Configure SSL.</span></span><br><span class="line">        <span class="keyword">final</span> SslContext sslCtx;</span><br><span class="line">        <span class="keyword">if</span> (SSL) &#123;</span><br><span class="line">            SelfSignedCertificate ssc = <span class="keyword">new</span> SelfSignedCertificate();</span><br><span class="line">            sslCtx = SslContextBuilder.forServer(ssc.certificate(), ssc.privateKey()).build();</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            sslCtx = <span class="keyword">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Configure the server.</span></span><br><span class="line">        <span class="comment">// 创建EventLoopGroup</span></span><br><span class="line">        EventLoopGroup bossGroup = <span class="keyword">new</span> NioEventLoopGroup(<span class="number">1</span>); <span class="comment">// 创建BOSS线程组 用于服务端接受客户端的连接</span></span><br><span class="line">        EventLoopGroup workerGroup = <span class="keyword">new</span> NioEventLoopGroup(); <span class="comment">// 创建WROK线程组 用于进行SocketChannel的网络读写</span></span><br><span class="line">        <span class="keyword">final</span> EchoServerHandler serverHandler = <span class="keyword">new</span> EchoServerHandler();</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="comment">// 创建ServerBootStrap实例</span></span><br><span class="line">            <span class="comment">// ServerBootstrap 用于启动NIO服务端的辅助启动类，目的是降低服务端的开发复杂度</span></span><br><span class="line">            ServerBootstrap b = <span class="keyword">new</span> ServerBootstrap();</span><br><span class="line">            <span class="comment">// 绑定Reactor线程池</span></span><br><span class="line">            b.group(bossGroup, workerGroup)</span><br><span class="line">             <span class="comment">// 设置并绑定服务端Channel</span></span><br><span class="line">             <span class="comment">// 指定所使用的NIO传输的Channel</span></span><br><span class="line">             .channel(NioServerSocketChannel.class)</span><br><span class="line">              <span class="comment">// 实例化的ServerChannel的配置项</span></span><br><span class="line">             .option(ChannelOption.SO_BACKLOG, <span class="number">100</span>)</span><br><span class="line">              <span class="comment">// 设置并添加handler 是 服务端NioServerSocketChannel</span></span><br><span class="line">             .handler(<span class="keyword">new</span> LoggingHandler(LogLevel.INFO))</span><br><span class="line">              <span class="comment">// 设置并添加ChannelHandler 是 NioSocketChannel</span></span><br><span class="line">             .childHandler(<span class="keyword">new</span> ChannelInitializer&lt;SocketChannel&gt;() &#123;</span><br><span class="line">                 <span class="meta">@Override</span></span><br><span class="line">                 <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">initChannel</span><span class="params">(SocketChannel ch)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">                     ChannelPipeline p = ch.pipeline();</span><br><span class="line">                     <span class="keyword">if</span> (sslCtx != <span class="keyword">null</span>) &#123;</span><br><span class="line">                         p.addLast(sslCtx.newHandler(ch.alloc()));</span><br><span class="line">                     &#125;</span><br><span class="line">                     <span class="comment">//p.addLast(new LoggingHandler(LogLevel.INFO));</span></span><br><span class="line">                     p.addLast(serverHandler);</span><br><span class="line">                 &#125;</span><br><span class="line">             &#125;);</span><br><span class="line"></span><br><span class="line">            <span class="comment">// Start the server.</span></span><br><span class="line">            <span class="comment">// 绑定端口，同步等待成功</span></span><br><span class="line">            ChannelFuture f = b.bind(PORT).sync();</span><br><span class="line"></span><br><span class="line">            <span class="comment">// Wait until the server socket is closed.</span></span><br><span class="line">            <span class="comment">// 等待服务端监听端口关闭</span></span><br><span class="line">            f.channel().closeFuture().sync();</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            <span class="comment">// Shut down all event loops to terminate all threads.</span></span><br><span class="line">            <span class="comment">// 优雅地关闭</span></span><br><span class="line">            bossGroup.shutdownGracefully();</span><br><span class="line">            workerGroup.shutdownGracefully();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h5 id="Netty服务端启动"><a href="#Netty服务端启动" class="headerlink" title="Netty服务端启动"></a>Netty服务端启动</h5><p>第一步：创建ServerBootstrap实例</p>
+<p>第二步：设置并绑定Reactor线程池</p>
+<p>第一步：创建服务端Channel</p>
+<p>第二步：初始化服务端Channel</p>
+<p>第三步：注册selector</p>
+<p>第四步：端口绑定</p>
+<p><img src="Netty%E4%B9%8B%E5%85%A5%E9%97%A8%E7%AC%AC%E4%B8%80%E6%AD%A5-%E6%9C%8D%E5%8A%A1%E7%AB%AF%E5%90%AF%E5%8A%A8/1566897070224.jpg"></p>
+<h6 id="创建服务端Channel"><a href="#创建服务端Channel" class="headerlink" title="创建服务端Channel"></a>创建服务端Channel</h6><p>bind() [用户代码入口]</p>
+<p>​    initAndRegister()[初始化并注册]</p>
+<p>​        newChannel()[创建服务端Channel]</p>
+<p><img src="Netty%E4%B9%8B%E5%85%A5%E9%97%A8%E7%AC%AC%E4%B8%80%E6%AD%A5-%E6%9C%8D%E5%8A%A1%E7%AB%AF%E5%90%AF%E5%8A%A8/1566899796657.jpg"></p>
+<p>// todo</p>
+<h6 id="反射创建服务端Channel"><a href="#反射创建服务端Channel" class="headerlink" title="反射创建服务端Channel"></a>反射创建服务端Channel</h6><p>newSocket()[通过jdk来创建底层jdk channel]</p>
+<p>NioServerSocketChannelConfig()[tcp参数配置类]</p>
+<p>AbstractNioChannel()</p>
+<p>​        configureBlocking(false)[阻塞模式]</p>
+<p>​        AbstractChannel()[创建id，unsafe，pipeline]</p>
+<h6 id="初始化服务端Channel-——-init"><a href="#初始化服务端Channel-——-init" class="headerlink" title="初始化服务端Channel ——- init()"></a>初始化服务端Channel ——- init()</h6><p><img src="Netty%E4%B9%8B%E5%85%A5%E9%97%A8%E7%AC%AC%E4%B8%80%E6%AD%A5-%E6%9C%8D%E5%8A%A1%E7%AB%AF%E5%90%AF%E5%8A%A8/1566459016187.jpg"></p>
+<p>init()[初始化入口]</p>
+<p>​    set ChannelOptions, ChannelAttrs</p>
+<p>​    set ChildOptions, ChildAttrs</p>
+<p>​    config handler[配置服务端pipeline]</p>
+<p>​    add ServerBootstrapAcceptor[添加连接器]</p>
+<h6 id="注册selector"><a href="#注册selector" class="headerlink" title="注册selector"></a>注册selector</h6><p>AbstractChannel.register(channel)[入口]</p>
+<p>​    this.eventLoop = eventLoop[绑定线程]</p>
+<p>​    register0[实际注册]</p>
+<p>​        doRegister()[调用jdk底层注册]</p>
+<p>​        invokeHandlerAdderIfNeeded()</p>
+<p>​        fireChannelRegistered()[传播事件]</p>
+<h6 id="端口绑定"><a href="#端口绑定" class="headerlink" title="端口绑定"></a>端口绑定</h6><p>AbstractUnsafe.bind()[入口]</p>
+<p>​    doBind()</p>
+<p>​        javaChannel().bind()[jdk底层绑定]</p>
+<p>​    pipeline.fireChannelActive()[传播事件]</p>
+<p>​        HeadContext.readIfIsAutoRead( )[表示可以读了]</p>
+<p><strong>两个问题</strong></p>
+<p>问：服务端的socket在哪里初始化？</p>
+<p>答：</p>
+<p>问：在哪里accept连接？</p>
+<p>答：</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Netty/" rel="tag"># Netty</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/08/14/%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98%E6%A1%88%E4%BE%8B/" rel="next" title="性能调优案例">
+                <i class="fa fa-chevron-left"></i> 性能调优案例
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2020/12/21/Netty%E4%B9%8B%E5%85%A5%E9%97%A8%E7%AC%AC%E4%B8%80%E6%AD%A5-%E6%9C%8D%E5%8A%A1%E7%AB%AF%E5%90%AF%E5%8A%A8/%E6%9C%AC%E5%9C%B0%E6%94%B6%E9%93%B6%E4%B8%8A%E4%BC%A0%E6%B2%BD%E6%B8%85%E6%B5%81%E7%A8%8B/" rel="prev" title="">
+                 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/cat.jpg"
+                alt="" />
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/%20%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">66</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">16</span>
+                  <span class="site-state-item-name">标签</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/yestermorrow" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Netty%E4%B9%8B%E5%85%A5%E9%97%A8%E7%AC%AC%E4%B8%80%E6%AD%A5-%E6%9C%8D%E5%8A%A1%E7%AB%AF%E5%90%AF%E5%8A%A8"><span class="nav-number">1.</span> <span class="nav-text">Netty之入门第一步-服务端启动</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.0.1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A1%88%E4%BE%8B"><span class="nav-number">1.0.2.</span> <span class="nav-text">案例</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Netty%E5%AF%B9socket%E7%9A%84%E6%8A%BD%E8%B1%A1"><span class="nav-number">1.0.2.1.</span> <span class="nav-text">Netty对socket的抽象</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Netty%E5%9F%BA%E6%9C%AC%E7%BB%84%E4%BB%B6%EF%BC%8C%E4%B8%8Edemo%E9%87%8C%E9%9D%A2%E5%AF%B9%E5%BA%94"><span class="nav-number">1.0.2.2.</span> <span class="nav-text">Netty基本组件，与demo里面对应</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Netty%E6%9C%8D%E5%8A%A1%E7%AB%AF%E5%90%AF%E5%8A%A8%E6%A0%87%E5%87%86demo"><span class="nav-number">1.0.2.3.</span> <span class="nav-text">Netty服务端启动标准demo</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#Netty%E6%9C%8D%E5%8A%A1%E7%AB%AF%E5%90%AF%E5%8A%A8"><span class="nav-number">1.0.2.3.1.</span> <span class="nav-text">Netty服务端启动</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#%E5%88%9B%E5%BB%BA%E6%9C%8D%E5%8A%A1%E7%AB%AFChannel"><span class="nav-number">1.0.2.3.1.1.</span> <span class="nav-text">创建服务端Channel</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#%E5%8F%8D%E5%B0%84%E5%88%9B%E5%BB%BA%E6%9C%8D%E5%8A%A1%E7%AB%AFChannel"><span class="nav-number">1.0.2.3.1.2.</span> <span class="nav-text">反射创建服务端Channel</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#%E5%88%9D%E5%A7%8B%E5%8C%96%E6%9C%8D%E5%8A%A1%E7%AB%AFChannel-%E2%80%94%E2%80%94-init"><span class="nav-number">1.0.2.3.1.3.</span> <span class="nav-text">初始化服务端Channel ——- init()</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#%E6%B3%A8%E5%86%8Cselector"><span class="nav-number">1.0.2.3.1.4.</span> <span class="nav-text">注册selector</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#%E7%AB%AF%E5%8F%A3%E7%BB%91%E5%AE%9A"><span class="nav-number">1.0.2.3.1.5.</span> <span class="nav-text">端口绑定</span></a></li></ol></li></ol></li></ol></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">yestermorrow</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

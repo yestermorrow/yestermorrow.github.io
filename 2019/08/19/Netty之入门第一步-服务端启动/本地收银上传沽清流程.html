@@ -1,0 +1,17 @@
+<h3 id="库存同步流程"><a href="#库存同步流程" class="headerlink" title="库存同步流程"></a>库存同步流程</h3><p>![image-20191010161813133](/Users/wanyajing/Library/Application Support/typora-user-images/image-20191010161813133.png)</p>
+<h3 id="桌位变化"><a href="#桌位变化" class="headerlink" title="桌位变化"></a>桌位变化</h3><p>![image-20191010175502330](/Users/wanyajing/Library/Application Support/typora-user-images/image-20191010175502330.png)</p>
+<h3 id="常见问题排查"><a href="#常见问题排查" class="headerlink" title="常见问题排查"></a>常见问题排查</h3><h4 id="1：收银和小二沽清状态不一致"><a href="#1：收银和小二沽清状态不一致" class="headerlink" title="1：收银和小二沽清状态不一致"></a>1：收银和小二沽清状态不一致</h4><p><strong>问题描述</strong>：收银上设置了沽清一百份，小二上显示不可点</p>
+<p>第一步  查询剩余份数   </p>
+<p>msstate库</p>
+<p>SELECT * from menu_balance WHERE entity_id = “99229968”;  </p>
+<p>![image-20191010132319736](/Users/wanyajing/Library/Application Support/typora-user-images/image-20191010132319736.png)</p>
+<p>第二步  是否开启堂食可点、外卖可点、此商品仅在个别时间段可点、外卖营业时间开关。</p>
+<p>![image-20191010131838472](/Users/wanyajing/Library/Application Support/typora-user-images/image-20191010131838472.png)</p>
+<p>商品后台可以查询</p>
+<p>![image-20191010132734338](/Users/wanyajing/Library/Application Support/typora-user-images/image-20191010132734338.png)</p>
+<h4 id="2：扫店铺二维码下单，消息中心提示“桌位不一致”"><a href="#2：扫店铺二维码下单，消息中心提示“桌位不一致”" class="headerlink" title="2：扫店铺二维码下单，消息中心提示“桌位不一致”"></a>2：扫店铺二维码下单，消息中心提示“桌位不一致”</h4><p>![image-20191010134505765](/Users/wanyajing/Library/Application Support/typora-user-images/image-20191010134505765.png)</p>
+<p>原因：掌柜上新增了桌位，收银机上未更新</p>
+<p>操作：数据更新</p>
+<h4 id="3：已设置沽清，外卖任可点"><a href="#3：已设置沽清，外卖任可点" class="headerlink" title="3：已设置沽清，外卖任可点"></a>3：已设置沽清，外卖任可点</h4><p>![image-20191010145457836](/Users/wanyajing/Library/Application Support/typora-user-images/image-20191010145457836.png)</p>
+<p>预约的非当天外卖   开关未打开</p>
+<h4 id="4：dpush消息超时排查"><a href="#4：dpush消息超时排查" class="headerlink" title="4：dpush消息超时排查"></a>4：dpush消息超时排查</h4><p>![image-20191010191544438](/Users/wanyajing/Library/Application Support/typora-user-images/image-20191010191544438.png)</p>

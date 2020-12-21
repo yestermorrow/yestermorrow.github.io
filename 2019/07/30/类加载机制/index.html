@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="类加载机制运行时数据区 类生命周期 类加载器类加载器负责装入类，搜索网络、jar、zip、文件夹、二进制数据、内存等指定位置的类资源。 一个java程序运行，最少有三个类加载器实例，负责不同类的加载。  验证问题🌾查看类对应的加载器 🌾JVM如何知道我们的类在何方 🌾类不会重复加载 🌾类的卸载 🌾双亲委派模型 1、查看类对应的加载器 demo12345678910111213141516">
+<meta property="og:type" content="article">
+<meta property="og:title" content="类加载机制">
+<meta property="og:url" content="http://yoursite.com/2019/07/30/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/index.html">
+<meta property="og:site_name" content="Yestermorrow">
+<meta property="og:description" content="类加载机制运行时数据区 类生命周期 类加载器类加载器负责装入类，搜索网络、jar、zip、文件夹、二进制数据、内存等指定位置的类资源。 一个java程序运行，最少有三个类加载器实例，负责不同类的加载。  验证问题🌾查看类对应的加载器 🌾JVM如何知道我们的类在何方 🌾类不会重复加载 🌾类的卸载 🌾双亲委派模型 1、查看类对应的加载器 demo12345678910111213141516">
+<meta property="og:locale">
+<meta property="og:image" content="http://yoursite.com/2019/07/30/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/1564477309571.jpg">
+<meta property="og:image" content="http://yoursite.com/2019/07/30/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/1564540712819.jpg">
+<meta property="og:image" content="http://yoursite.com/2019/07/30/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/1564541108517.jpg">
+<meta property="og:image" content="http://yoursite.com/2019/07/30/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/1564559188569.jpg">
+<meta property="og:image" content="http://yoursite.com/2019/07/30/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/1564561835624.jpg">
+<meta property="og:image" content="http://yoursite.com/2019/07/30/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/1564562049362.jpg">
+<meta property="og:image" content="http://yoursite.com/2019/07/30/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/1564562267662.jpg">
+<meta property="og:image" content="http://yoursite.com/2019/07/30/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/1564562616419.jpg">
+<meta property="og:image" content="http://yoursite.com/2019/07/30/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/1564996491620.jpg">
+<meta property="og:image" content="http://yoursite.com/2019/07/30/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/1564996776473.jpg">
+<meta property="og:image" content="http://yoursite.com/2019/07/30/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/1564997650286.jpg">
+<meta property="og:image" content="http://yoursite.com/2019/07/30/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/1564998092497.jpg">
+<meta property="og:image" content="http://yoursite.com/2019/07/30/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/1565002604815.jpg">
+<meta property="og:image" content="http://yoursite.com/2019/07/30/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/1565002663042.jpg">
+<meta property="article:published_time" content="2019-07-30T08:55:47.000Z">
+<meta property="article:modified_time" content="2019-08-05T11:04:27.000Z">
+<meta property="article:author" content="yestermorrow">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2019/07/30/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/1564477309571.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/07/30/类加载机制/"/>
+
+
+
+
+
+  <title>类加载机制 | Yestermorrow</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 5.3.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Yestermorrow</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/%20" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/%20" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/07/30/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/cat.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Yestermorrow">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">类加载机制</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-07-30T16:55:47+08:00">
+                2019-07-30
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="类加载机制"><a href="#类加载机制" class="headerlink" title="类加载机制"></a>类加载机制</h1><h3 id="运行时数据区"><a href="#运行时数据区" class="headerlink" title="运行时数据区"></a>运行时数据区</h3><p><img src="%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/1564477309571.jpg"></p>
+<h3 id="类生命周期"><a href="#类生命周期" class="headerlink" title="类生命周期"></a>类生命周期</h3><p><img src="%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/1564540712819.jpg"></p>
+<h4 id="类加载器"><a href="#类加载器" class="headerlink" title="类加载器"></a>类加载器</h4><p>类加载器负责装入类，搜索网络、jar、zip、文件夹、二进制数据、内存等指定位置的类资源。</p>
+<p>一个java程序运行，最少有三个类加载器实例，负责不同类的加载。</p>
+<p><img src="%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/1564541108517.jpg"></p>
+<h4 id="验证问题"><a href="#验证问题" class="headerlink" title="验证问题"></a>验证问题</h4><p>🌾查看类对应的加载器</p>
+<p>🌾JVM如何知道我们的类在何方</p>
+<p>🌾类不会重复加载</p>
+<p>🌾类的卸载</p>
+<p>🌾双亲委派模型</p>
+<h5 id="1、查看类对应的加载器"><a href="#1、查看类对应的加载器" class="headerlink" title="1、查看类对应的加载器"></a>1、查看类对应的加载器</h5><p><img src="%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/1564559188569.jpg"></p>
+<h5 id="demo"><a href="#demo" class="headerlink" title="demo"></a>demo</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.wyj.classloader;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 查看类的加载器实例</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ClassLoaderView</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        <span class="comment">// 加载核心类库的 BootStrap ClassLoader</span></span><br><span class="line">        System.out.println(<span class="string">&quot;核心类库加载器：&quot;</span></span><br><span class="line">                + ClassLoaderView.class.getClassLoader().loadClass(<span class="string">&quot;java.lang.String&quot;</span>).getClassLoader());</span><br><span class="line">        <span class="comment">// 加载拓展库的 Extension ClassLoader</span></span><br><span class="line">        System.out.println(<span class="string">&quot;拓展类库加载器：&quot;</span> + ClassLoaderView.class.getClassLoader()</span><br><span class="line">                .loadClass(<span class="string">&quot;com.sun.nio.zipfs.ZipCoder&quot;</span>).getClassLoader());</span><br><span class="line">        <span class="comment">// 加载应用程序的</span></span><br><span class="line">        System.out.println(<span class="string">&quot;应用程序库加载器：&quot;</span> + ClassLoaderView.class.getClassLoader());</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 双亲委派模型 Parents Delegation Model</span></span><br><span class="line">        System.out.println(<span class="string">&quot;应用程序库加载器的父类：&quot;</span> + ClassLoaderView.class.getClassLoader().getParent());</span><br><span class="line">        System.out.println(</span><br><span class="line">                <span class="string">&quot;应用程序库加载器的父类的父类：&quot;</span> + ClassLoaderView.class.getClassLoader().getParent().getParent());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>console</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">核心类库加载器：null</span><br><span class="line">拓展类库加载器：sun.misc.Launcher$ExtClassLoader@2a84aee7</span><br><span class="line">应用程序库加载器：sun.misc.Launcher$AppClassLoader@18b4aac2</span><br><span class="line">应用程序库加载器的父类：sun.misc.Launcher$ExtClassLoader@2a84aee7</span><br><span class="line">应用程序库加载器的父类的父类：null</span><br></pre></td></tr></table></figure>
+<h5 id="2、JVM如何知道我们的类在何方"><a href="#2、JVM如何知道我们的类在何方" class="headerlink" title="2、JVM如何知道我们的类在何方"></a>2、JVM如何知道我们的类在何方</h5><p>class信息存放在不同的位置，桌面jar、项目bin目录、target目录等待…</p>
+<p>查看openjdk源代码：sun.misc.Launcher.AppClassLoader</p>
+<p>结论：读取java.class.path配置，指定去哪些地址加载类资源</p>
+<p>验证过程：利用jps、jcmd两个命令</p>
+<p>1、jps查看本机JAVA进程</p>
+<p>2、查看运行时配置：jcmd进程号 VM.system_properties</p>
+<p>查看过程</p>
+<p>先运行demo</p>
+<p><img src="%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/1564561835624.jpg"></p>
+<p>打开终端</p>
+<p><img src="%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/1564562049362.jpg"></p>
+<p><img src="%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/1564562267662.jpg"></p>
+<p><img src="%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/1564562616419.jpg"></p>
+<p>就是通过这个配置信息，让JVM能够从目录里读数据</p>
+<h5 id="3、类不会重复加载"><a href="#3、类不会重复加载" class="headerlink" title="3、类不会重复加载"></a>3、类不会重复加载</h5><p>类的唯一性：同一个类加载器，类名一样，代表是同一个类。</p>
+<p>识别方式：ClassLoader Instance id + PackageName + ClassName</p>
+<p>验证方式：使用类加载器，对同一个class类的不同版本，进行多次加载，检查是否会加载到最新的代码。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.wyj.classloader;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.net.URL;</span><br><span class="line"><span class="keyword">import</span> java.net.URLClassLoader;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 指定class 进行加载e</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">LoaderTest</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        URL classUrl = <span class="keyword">new</span> URL(<span class="string">&quot;file:D:\\&quot;</span>);<span class="comment">//jvm 类放在位置</span></span><br><span class="line"></span><br><span class="line">        URLClassLoader parentLoader = <span class="keyword">new</span> URLClassLoader(<span class="keyword">new</span> URL[]&#123;classUrl&#125;);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">while</span> (<span class="keyword">true</span>) &#123;</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 问题：静态块触发</span></span><br><span class="line">            Class clazz = loader.loadClass(<span class="string">&quot;HelloService&quot;</span>);</span><br><span class="line">            System.out.println(<span class="string">&quot;HelloService所使用的类加载器：&quot;</span> + clazz.getClassLoader());</span><br><span class="line"></span><br><span class="line">            Object newInstance = clazz.newInstance();</span><br><span class="line">            Object value = clazz.getMethod(<span class="string">&quot;test&quot;</span>).invoke(newInstance);</span><br><span class="line">            System.out.println(<span class="string">&quot;调用getValue获得的返回值为：&quot;</span> + value);</span><br><span class="line"></span><br><span class="line">            Thread.sleep(<span class="number">3000L</span>); <span class="comment">// 1秒执行一次</span></span><br><span class="line">            System.out.println();</span><br><span class="line"></span><br><span class="line">            <span class="comment">//  help gc  -verbose:class</span></span><br><span class="line">            newInstance = <span class="keyword">null</span>;</span><br><span class="line">            loader = <span class="keyword">null</span>;</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// System.gc();</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/** 类加载测试类 */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HelloService</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">```</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> String value = getValue();</span><br><span class="line"></span><br><span class="line"><span class="keyword">static</span> &#123;</span><br><span class="line">    System.out.println(<span class="string">&quot;静态代码块运行&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> String <span class="title">getValue</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    System.out.println(<span class="string">&quot;静态方法被运行&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="string">&quot;netease&quot;</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    System.out.println(<span class="string">&quot;hello..&quot;</span> + value);</span><br><span class="line">&#125;</span><br><span class="line">```</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>console</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">HelloService所使用的类加载器：java.net.URLClassLoader@279f2327</span><br><span class="line">静态方法被运行</span><br><span class="line">静态代码块运行</span><br><span class="line">hello..netease</span><br><span class="line">调用getValue获得的返回值为：null</span><br><span class="line"></span><br><span class="line">HelloService所使用的类加载器：java.net.URLClassLoader@5caf905d</span><br><span class="line">静态方法被运行</span><br><span class="line">静态代码块运行</span><br><span class="line">hello..netease</span><br><span class="line">调用getValue获得的返回值为：null</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+<p>程序运行过程中，修改system的值发现，输出并没有改变，证明类不会重复加载</p>
+<h5 id="4、类的卸载"><a href="#4、类的卸载" class="headerlink" title="4、类的卸载"></a>4、类的卸载</h5><p><img src="%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/1564996491620.jpg"></p>
+<p>验证方式：jvm启动中增-verbose:class参数，输出类记载和卸载的日志信息</p>
+<p><img src="%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/1564996776473.jpg"></p>
+<p>demo</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.wyj.classloader;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.net.URL;</span><br><span class="line"><span class="keyword">import</span> java.net.URLClassLoader;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 指定class 进行加载e</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">LoaderTest</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        URL classUrl = <span class="keyword">new</span> URL(<span class="string">&quot;file:/Users/wanyajing/Desktop/&quot;</span>);<span class="comment">//jvm 类放在位置</span></span><br><span class="line"></span><br><span class="line">        URLClassLoader parentLoader = <span class="keyword">new</span> URLClassLoader(<span class="keyword">new</span> URL[]&#123;classUrl&#125;);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">while</span> (<span class="keyword">true</span>) &#123;</span><br><span class="line">            <span class="keyword">if</span> (parentLoader == <span class="keyword">null</span>) <span class="keyword">break</span>;</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 问题：静态块触发</span></span><br><span class="line">            Class clazz = parentLoader.loadClass(<span class="string">&quot;HelloService&quot;</span>);</span><br><span class="line">            System.out.println(<span class="string">&quot;HelloService所使用的类加载器：&quot;</span> + clazz.getClassLoader());</span><br><span class="line"></span><br><span class="line">            Object newInstance = clazz.newInstance();</span><br><span class="line">            Object value = clazz.getMethod(<span class="string">&quot;test&quot;</span>).invoke(newInstance);</span><br><span class="line">            System.out.println(<span class="string">&quot;调用getValue获得的返回值为：&quot;</span> + value);</span><br><span class="line"></span><br><span class="line">            Thread.sleep(<span class="number">3000L</span>); <span class="comment">// 1秒执行一次</span></span><br><span class="line">            System.out.println();</span><br><span class="line"></span><br><span class="line">            <span class="comment">//  help gc  -verbose:class</span></span><br><span class="line">            newInstance = <span class="keyword">null</span>;</span><br><span class="line">            parentLoader = <span class="keyword">null</span>;</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">         System.gc();</span><br><span class="line">         Thread.sleep(<span class="number">10000L</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>console</p>
+<p><img src="%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/1564997650286.jpg"></p>
+<h5 id="5、双亲委派模型"><a href="#5、双亲委派模型" class="headerlink" title="5、双亲委派模型"></a>5、双亲委派模型</h5><p><img src="%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/1564998092497.jpg"></p>
+<p>上面的LoaderTest类，会发现修改类的内容的时候，重新javac HelloService.java后，类不会被重新加载</p>
+<p><img src="%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/1565002604815.jpg"></p>
+<p>将URLClassLoader loader = new URLClassLoader(new URL[]{classUrl});这段加载代码放到while循环里面后，就能马上加载到最新的代码，这就是很多很多框架中所说的热加载功能。一个class不能被一个加载器重复加载，所以每次加载的时候都创建一个新的加载器。一旦检测到代码有变化就创建一个新的类加载器，这是<strong>热加载</strong>。例如tomcat中加载jsp就是利用这个方法实现热加载。</p>
+<p>修改demo为双亲委派模型</p>
+<p><img src="%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/1565002663042.jpg"></p>
+<p>发现热加载功能消失了，修改类再重新编译后，运行结果没有发生变化，这是为什么？</p>
+<p>这就是双亲委派模型的功能，随意每次运行代码的时候都创建了一个新的类加载器，但是实际上每个一直都是同一个加载器parentLoader在加载，而parentLoader一直都没有重复加载，所以无法热加载。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/07/30/Netty%E8%81%8C%E8%B4%A3%E9%93%BEPipeline%E8%AF%A6%E8%A7%A3/" rel="next" title="Netty职责链Pipeline详解">
+                <i class="fa fa-chevron-left"></i> Netty职责链Pipeline详解
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/08/05/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%9C%BA%E5%88%B6/" rel="prev" title="垃圾回收机制">
+                垃圾回收机制 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/cat.jpg"
+                alt="" />
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/%20%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">66</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">16</span>
+                  <span class="site-state-item-name">标签</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/yestermorrow" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6"><span class="nav-number">1.</span> <span class="nav-text">类加载机制</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%E5%8C%BA"><span class="nav-number">1.0.1.</span> <span class="nav-text">运行时数据区</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%B1%BB%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F"><span class="nav-number">1.0.2.</span> <span class="nav-text">类生命周期</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%99%A8"><span class="nav-number">1.0.2.1.</span> <span class="nav-text">类加载器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%AA%8C%E8%AF%81%E9%97%AE%E9%A2%98"><span class="nav-number">1.0.2.2.</span> <span class="nav-text">验证问题</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#1%E3%80%81%E6%9F%A5%E7%9C%8B%E7%B1%BB%E5%AF%B9%E5%BA%94%E7%9A%84%E5%8A%A0%E8%BD%BD%E5%99%A8"><span class="nav-number">1.0.2.2.1.</span> <span class="nav-text">1、查看类对应的加载器</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#demo"><span class="nav-number">1.0.2.2.2.</span> <span class="nav-text">demo</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#2%E3%80%81JVM%E5%A6%82%E4%BD%95%E7%9F%A5%E9%81%93%E6%88%91%E4%BB%AC%E7%9A%84%E7%B1%BB%E5%9C%A8%E4%BD%95%E6%96%B9"><span class="nav-number">1.0.2.2.3.</span> <span class="nav-text">2、JVM如何知道我们的类在何方</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#3%E3%80%81%E7%B1%BB%E4%B8%8D%E4%BC%9A%E9%87%8D%E5%A4%8D%E5%8A%A0%E8%BD%BD"><span class="nav-number">1.0.2.2.4.</span> <span class="nav-text">3、类不会重复加载</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#4%E3%80%81%E7%B1%BB%E7%9A%84%E5%8D%B8%E8%BD%BD"><span class="nav-number">1.0.2.2.5.</span> <span class="nav-text">4、类的卸载</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#5%E3%80%81%E5%8F%8C%E4%BA%B2%E5%A7%94%E6%B4%BE%E6%A8%A1%E5%9E%8B"><span class="nav-number">1.0.2.2.6.</span> <span class="nav-text">5、双亲委派模型</span></a></li></ol></li></ol></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">yestermorrow</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

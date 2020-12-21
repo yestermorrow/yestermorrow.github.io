@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="HashMap ConcurrentHashMap1.7和1.8HashMap1.7初始化![](HashMap-ConcurrentHashMap1-7和1-8&#x2F;图片 2.png) ![](HashMap-ConcurrentHashMap1-7和1-8&#x2F;图片 3.png) put![](HashMap-ConcurrentHashMap1-7和1-8&#x2F;图片 1.png) ![](HashMap">
+<meta property="og:type" content="article">
+<meta property="og:title" content="HashMap ConcurrentHashMap1.7和1.8">
+<meta property="og:url" content="http://yoursite.com/2019/07/22/HashMap-ConcurrentHashMap1-7%E5%92%8C1-8/index.html">
+<meta property="og:site_name" content="Yestermorrow">
+<meta property="og:description" content="HashMap ConcurrentHashMap1.7和1.8HashMap1.7初始化![](HashMap-ConcurrentHashMap1-7和1-8&#x2F;图片 2.png) ![](HashMap-ConcurrentHashMap1-7和1-8&#x2F;图片 3.png) put![](HashMap-ConcurrentHashMap1-7和1-8&#x2F;图片 1.png) ![](HashMap">
+<meta property="og:locale">
+<meta property="og:image" content="http://yoursite.com/2019/07/22/HashMap-ConcurrentHashMap1-7%E5%92%8C1-8/HashMap-ConcurrentHashMap1-7%E5%92%8C1-8/1563797693621.jpg">
+<meta property="og:image" content="http://yoursite.com/2019/07/22/HashMap-ConcurrentHashMap1-7%E5%92%8C1-8/HashMap-ConcurrentHashMap1-7%E5%92%8C1-8/%E5%9B%BE%E7%89%8713.png">
+<meta property="og:image" content="http://yoursite.com/2019/07/22/HashMap-ConcurrentHashMap1-7%E5%92%8C1-8/HashMap-ConcurrentHashMap1-7%E5%92%8C1-8/1563794103598.jpg">
+<meta property="og:image" content="http://yoursite.com/2019/07/22/HashMap-ConcurrentHashMap1-7%E5%92%8C1-8/HashMap-ConcurrentHashMap1-7%E5%92%8C1-8/1563795220435.jpg">
+<meta property="article:published_time" content="2019-07-22T12:23:36.000Z">
+<meta property="article:modified_time" content="2019-08-13T06:34:14.000Z">
+<meta property="article:author" content="yestermorrow">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2019/07/22/HashMap-ConcurrentHashMap1-7%E5%92%8C1-8/HashMap-ConcurrentHashMap1-7%E5%92%8C1-8/1563797693621.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/07/22/HashMap-ConcurrentHashMap1-7和1-8/"/>
+
+
+
+
+
+  <title>HashMap ConcurrentHashMap1.7和1.8 | Yestermorrow</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 5.3.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Yestermorrow</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/%20" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/%20" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/07/22/HashMap-ConcurrentHashMap1-7%E5%92%8C1-8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/cat.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Yestermorrow">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">HashMap ConcurrentHashMap1.7和1.8</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-07-22T20:23:36+08:00">
+                2019-07-22
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="HashMap-ConcurrentHashMap1-7和1-8"><a href="#HashMap-ConcurrentHashMap1-7和1-8" class="headerlink" title="HashMap ConcurrentHashMap1.7和1.8"></a>HashMap ConcurrentHashMap1.7和1.8</h1><h3 id="HashMap1-7"><a href="#HashMap1-7" class="headerlink" title="HashMap1.7"></a>HashMap1.7</h3><h4 id="初始化"><a href="#初始化" class="headerlink" title="初始化"></a>初始化</h4><p>![](HashMap-ConcurrentHashMap1-7和1-8/图片 2.png)</p>
+<p>![](HashMap-ConcurrentHashMap1-7和1-8/图片 3.png)</p>
+<h4 id="put"><a href="#put" class="headerlink" title="put"></a>put</h4><p>![](HashMap-ConcurrentHashMap1-7和1-8/图片 1.png)</p>
+<p>![](HashMap-ConcurrentHashMap1-7和1-8/图片 4.png)</p>
+<h4 id="创建新的Entry"><a href="#创建新的Entry" class="headerlink" title="创建新的Entry"></a>创建新的Entry</h4><p>![](HashMap-ConcurrentHashMap1-7和1-8/图片 5.png)</p>
+<h4 id="get"><a href="#get" class="headerlink" title="get"></a>get</h4><p>![](HashMap-ConcurrentHashMap1-7和1-8/图片 6.png)</p>
+<h4 id="扩容机制"><a href="#扩容机制" class="headerlink" title="扩容机制"></a>扩容机制</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">addEntry</span><span class="params">(<span class="keyword">int</span> hash, K key, V value, <span class="keyword">int</span> bucketIndex)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 如果当前 HashMap 大小已经达到了阈值，并且新值要插入的数组位置已经有元素了，那么要扩容</span></span><br><span class="line">    <span class="keyword">if</span> ((size &gt;= threshold) &amp;&amp; (<span class="keyword">null</span> != table[bucketIndex])) &#123;</span><br><span class="line">        <span class="comment">// 扩容，容量 * 2</span></span><br><span class="line">        resize(<span class="number">2</span> * table.length);</span><br><span class="line">        <span class="comment">// 扩容以后，重新计算 hash 值</span></span><br><span class="line">        hash = (<span class="keyword">null</span> != key) ? hash(key) : <span class="number">0</span>;</span><br><span class="line">        <span class="comment">// 重新计算扩容后的新的下标</span></span><br><span class="line">        bucketIndex = indexFor(hash, table.length);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 创建元素</span></span><br><span class="line">    createEntry(hash, key, value, bucketIndex);</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>那么size为16的hashMap最多到底能塞多少个元素？</strong></p>
+<p>hashmap是数组+链表的结构</p>
+<p>利用扩容条件，我们可以</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment"> * Inflates the table.</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">inflateTable</span><span class="params">(<span class="keyword">int</span> toSize)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Find a power of 2 &gt;= toSize 保证数组大小一定是 2 的 n 次方。</span></span><br><span class="line">    <span class="comment">// new HashMap(519)，大小是1024</span></span><br><span class="line">    <span class="keyword">int</span> capacity = roundUpToPowerOf2(toSize);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 计算扩容阈值：capacity * loadFactor</span></span><br><span class="line">    threshold = (<span class="keyword">int</span>) Math.min(capacity * loadFactor, MAXIMUM_CAPACITY + <span class="number">1</span>);</span><br><span class="line">    <span class="comment">// 初始化数组</span></span><br><span class="line">    table = <span class="keyword">new</span> Entry[capacity];</span><br><span class="line"></span><br><span class="line">    initHashSeedAsNeeded(capacity);</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><img src="HashMap-ConcurrentHashMap1-7%E5%92%8C1-8/1563797693621.jpg"></p>
+<h3 id="HashMap1-8（与1-7的不同之处）"><a href="#HashMap1-8（与1-7的不同之处）" class="headerlink" title="HashMap1.8（与1.7的不同之处）"></a>HashMap1.8（与1.7的不同之处）</h3><p>![](HashMap-ConcurrentHashMap1-7和1-8/图片 7.png)</p>
+<h4 id="扩容"><a href="#扩容" class="headerlink" title="扩容"></a>扩容</h4><p>![](HashMap-ConcurrentHashMap1-7和1-8/图片 8.png)</p>
+<p>所以1.8的最大扩容临界点就是12</p>
+<h4 id="put-1"><a href="#put-1" class="headerlink" title="put"></a>put</h4><p>![](HashMap-ConcurrentHashMap1-7和1-8/图片 9.png)</p>
+<p><strong>为什么要转换</strong>？</p>
+<p>在1.7的hashMap中，若表size从512扩容至1024，链表的最大长度也增大到1024，这样若出现新插入的五百多个元素全部进入第一个链表，导致链表长度过大，则会造成查询速度很慢的情况。所以1.8有了树形结构。</p>
+<p>树：构建树结构，复杂（插入复杂），所以复杂jdk1.8是在达到一定阈值（8）的时候，再转换成树</p>
+<h4 id="Java8扩容时机"><a href="#Java8扩容时机" class="headerlink" title="Java8扩容时机"></a>Java8扩容时机</h4><p>1、     超过阈值（默认12）</p>
+<p>2、      当链表长度超过8，且，数组长度&lt;64的时候(代码如下图)</p>
+<p>![](HashMap-ConcurrentHashMap1-7和1-8/图片 10.png)</p>
+<p>所以1.8的hashmap扩容时机最大是12，最小是9。</p>
+<h2 id="并发安全"><a href="#并发安全" class="headerlink" title="并发安全"></a>并发安全</h2><h3 id="jdk1-7-CurrentHashMap"><a href="#jdk1-7-CurrentHashMap" class="headerlink" title="jdk1.7 CurrentHashMap"></a>jdk1.7 CurrentHashMap</h3><h4 id="初始化-1"><a href="#初始化-1" class="headerlink" title="初始化"></a>初始化</h4><p>![](HashMap-ConcurrentHashMap1-7和1-8/图片 11.png)</p>
+<p>![](HashMap-ConcurrentHashMap1-7和1-8/图片 12.png)</p>
+<h4 id="put-2"><a href="#put-2" class="headerlink" title="put"></a>put</h4><p><img src="HashMap-ConcurrentHashMap1-7%E5%92%8C1-8/%E5%9B%BE%E7%89%8713.png"></p>
+<h4 id="Segment-put"><a href="#Segment-put" class="headerlink" title="Segment.put"></a>Segment.put</h4><p>![](HashMap-ConcurrentHashMap1-7和1-8/图片 15.png)</p>
+<p>&lt;=1.7segment(分段锁) = HashMap功能+Lock锁的功能 = 类似hashTable</p>
+<p><img src="HashMap-ConcurrentHashMap1-7%E5%92%8C1-8/1563794103598.jpg"></p>
+<p><strong>缺点：统计size，就是遍历每个segment，性能较差</strong></p>
+<h3 id="1-8ConcurrentHashMap———-没有segment概念"><a href="#1-8ConcurrentHashMap———-没有segment概念" class="headerlink" title="1.8ConcurrentHashMap——— 没有segment概念"></a>1.8ConcurrentHashMap——— 没有segment概念</h3><h4 id="put-3"><a href="#put-3" class="headerlink" title="put"></a>put</h4><p>![](HashMap-ConcurrentHashMap1-7和1-8/图片 16.png)无冲突的时候  CAS无锁</p>
+<p>![](HashMap-ConcurrentHashMap1-7和1-8/图片 17.png)</p>
+<p><img src="HashMap-ConcurrentHashMap1-7%E5%92%8C1-8/1563795220435.jpg"></p>
+<p>降低锁的粒度，减小冲突发生的可能性。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/07/22/%E5%B9%B6%E5%8F%91%E5%AE%B9%E5%99%A8%E7%B1%BBlist-set-queue/" rel="next" title="并发容器类list_set_queue">
+                <i class="fa fa-chevron-left"></i> 并发容器类list_set_queue
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/07/25/TCP-UDP-%E5%8D%8F%E8%AE%AE/" rel="prev" title="TCP/UDP 协议">
+                TCP/UDP 协议 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/cat.jpg"
+                alt="" />
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/%20%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">66</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">16</span>
+                  <span class="site-state-item-name">标签</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/yestermorrow" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#HashMap-ConcurrentHashMap1-7%E5%92%8C1-8"><span class="nav-number">1.</span> <span class="nav-text">HashMap ConcurrentHashMap1.7和1.8</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#HashMap1-7"><span class="nav-number">1.0.1.</span> <span class="nav-text">HashMap1.7</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="nav-number">1.0.1.1.</span> <span class="nav-text">初始化</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#put"><span class="nav-number">1.0.1.2.</span> <span class="nav-text">put</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%9B%E5%BB%BA%E6%96%B0%E7%9A%84Entry"><span class="nav-number">1.0.1.3.</span> <span class="nav-text">创建新的Entry</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#get"><span class="nav-number">1.0.1.4.</span> <span class="nav-text">get</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%89%A9%E5%AE%B9%E6%9C%BA%E5%88%B6"><span class="nav-number">1.0.1.5.</span> <span class="nav-text">扩容机制</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#HashMap1-8%EF%BC%88%E4%B8%8E1-7%E7%9A%84%E4%B8%8D%E5%90%8C%E4%B9%8B%E5%A4%84%EF%BC%89"><span class="nav-number">1.0.2.</span> <span class="nav-text">HashMap1.8（与1.7的不同之处）</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%89%A9%E5%AE%B9"><span class="nav-number">1.0.2.1.</span> <span class="nav-text">扩容</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#put-1"><span class="nav-number">1.0.2.2.</span> <span class="nav-text">put</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Java8%E6%89%A9%E5%AE%B9%E6%97%B6%E6%9C%BA"><span class="nav-number">1.0.2.3.</span> <span class="nav-text">Java8扩容时机</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B9%B6%E5%8F%91%E5%AE%89%E5%85%A8"><span class="nav-number">1.1.</span> <span class="nav-text">并发安全</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#jdk1-7-CurrentHashMap"><span class="nav-number">1.1.1.</span> <span class="nav-text">jdk1.7 CurrentHashMap</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%9D%E5%A7%8B%E5%8C%96-1"><span class="nav-number">1.1.1.1.</span> <span class="nav-text">初始化</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#put-2"><span class="nav-number">1.1.1.2.</span> <span class="nav-text">put</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Segment-put"><span class="nav-number">1.1.1.3.</span> <span class="nav-text">Segment.put</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-8ConcurrentHashMap%E2%80%94%E2%80%94%E2%80%94-%E6%B2%A1%E6%9C%89segment%E6%A6%82%E5%BF%B5"><span class="nav-number">1.1.2.</span> <span class="nav-text">1.8ConcurrentHashMap——— 没有segment概念</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#put-3"><span class="nav-number">1.1.2.1.</span> <span class="nav-text">put</span></a></li></ol></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">yestermorrow</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

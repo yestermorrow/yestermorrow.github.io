@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="RocketMQ," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="RocketMQ路由中心NameServerNameServer架构设计 Producer同一时间，与NameServer集群中其中一台建立长连接。 Producer与Broker之间的Master保持长连接。 Consumer同一时间与NameServer集群中一台建立长连接。 Consumer与所有Broker建立长连接。 Producer发送某一主题的消息到消息服务器，消息服务器负责该消息的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="RocketMQ路由中心NameServer">
+<meta property="og:url" content="http://yoursite.com/2019/02/22/RocketMQ%E8%B7%AF%E7%94%B1%E4%B8%AD%E5%BF%83NameServer/index.html">
+<meta property="og:site_name" content="Yestermorrow">
+<meta property="og:description" content="RocketMQ路由中心NameServerNameServer架构设计 Producer同一时间，与NameServer集群中其中一台建立长连接。 Producer与Broker之间的Master保持长连接。 Consumer同一时间与NameServer集群中一台建立长连接。 Consumer与所有Broker建立长连接。 Producer发送某一主题的消息到消息服务器，消息服务器负责该消息的">
+<meta property="og:locale">
+<meta property="og:image" content="http://yoursite.com/2019/02/22/RocketMQ%E8%B7%AF%E7%94%B1%E4%B8%AD%E5%BF%83NameServer/RocketMQ%E8%B7%AF%E7%94%B1%E4%B8%AD%E5%BF%83NameServer/RocketMQ%E7%BD%91%E7%BB%9C%E9%83%A8%E7%BD%B2%E5%9B%BE.png">
+<meta property="article:published_time" content="2019-02-22T06:24:42.000Z">
+<meta property="article:modified_time" content="2019-06-28T06:28:11.000Z">
+<meta property="article:author" content="yestermorrow">
+<meta property="article:tag" content="RocketMQ">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2019/02/22/RocketMQ%E8%B7%AF%E7%94%B1%E4%B8%AD%E5%BF%83NameServer/RocketMQ%E8%B7%AF%E7%94%B1%E4%B8%AD%E5%BF%83NameServer/RocketMQ%E7%BD%91%E7%BB%9C%E9%83%A8%E7%BD%B2%E5%9B%BE.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/02/22/RocketMQ路由中心NameServer/"/>
+
+
+
+
+
+  <title>RocketMQ路由中心NameServer | Yestermorrow</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 5.3.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Yestermorrow</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/%20" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/%20" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/02/22/RocketMQ%E8%B7%AF%E7%94%B1%E4%B8%AD%E5%BF%83NameServer/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/cat.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Yestermorrow">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">RocketMQ路由中心NameServer</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-02-22T14:24:42+08:00">
+                2019-02-22
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="RocketMQ路由中心NameServer"><a href="#RocketMQ路由中心NameServer" class="headerlink" title="RocketMQ路由中心NameServer"></a>RocketMQ路由中心NameServer</h1><h3 id="NameServer架构设计"><a href="#NameServer架构设计" class="headerlink" title="NameServer架构设计"></a>NameServer架构设计</h3><p><img src="RocketMQ%E8%B7%AF%E7%94%B1%E4%B8%AD%E5%BF%83NameServer/RocketMQ%E7%BD%91%E7%BB%9C%E9%83%A8%E7%BD%B2%E5%9B%BE.png" alt="RocketMQ网络部署图"></p>
+<p>Producer同一时间，与NameServer集群中其中一台建立长连接。</p>
+<p>Producer与Broker之间的Master保持长连接。</p>
+<p>Consumer同一时间与NameServer集群中一台建立长连接。</p>
+<p>Consumer与所有Broker建立长连接。</p>
+<p><strong>Producer</strong>发送某一主题的消息到消息服务器，消息服务器负责该消息的持久化存储。消息生产者（Producer）在发送消息之前先从NameServer获取Broker服务器地址列表，然后根据负载算法从列表中选择一台消息服务器进行消息发送。</p>
+<p><strong>Consumer</strong>订阅感兴趣的主题，消息服务器根据订阅信息（路由信息）将消息推送到消费者（PUSH模式）或者消息消费者主动向消费服务器拉取消息（PULL模式），从而实现消息生产者和消息消费者解耦。</p>
+<p><strong>Broker</strong>消息服务器在启动时向所有NameServer注册。Broker 部署相对复杂，Broker 分为 Master 不 Slave，一个 Master 可以对应多个 Slave，但是一个 Slave 只能 对应一个 Master，Master 与 Slave 的对应关系通过指定相同的 BrokerName，不同的 BrokerId 来定义，BrokerId为 0 表示 Master，非 0 表示 Slave。Master 也可以部署多个。每个 Broker 与 Name Server 集群中的所有节 点建立长连接，定时注册 Topic 信息到所有 Name Server。</p>
+<p><strong>NameServer</strong>和每台Broker服务器保持长连接，并间隔30s检测Broker是否存活。如果检测到Broker宕机，则从路由注册表中将其移除。NameServer本身的高可用可通过部署多台NameServer服务器来实现，但彼此之间互不通信，也就是NameServer服务器之间在某一时刻的数据并不会完全相同，但这对消息发送不会造成任何影响。</p>
+<h3 id="NameServer启动流程"><a href="#NameServer启动流程" class="headerlink" title="NameServer启动流程"></a>NameServer启动流程</h3><h5 id="NameServer启动的主类——NamesrvStartup"><a href="#NameServer启动的主类——NamesrvStartup" class="headerlink" title="NameServer启动的主类——NamesrvStartup"></a>NameServer启动的主类——NamesrvStartup</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> NamesrvController <span class="title">main0</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 将参数设置为系统的全局变量，可以在项目的任何一个地方通过System.getProperty(&quot;变量&quot;);来获得</span></span><br><span class="line">    System.setProperty(RemotingCommand.REMOTING_VERSION_KEY, Integer.toString(MQVersion.CURRENT_VERSION));</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="comment">//PackageConflictDetect.detectFastjson();</span></span><br><span class="line"></span><br><span class="line">        Options options = ServerUtil.buildCommandlineOptions(<span class="keyword">new</span> Options());<span class="comment">// 初始化Option</span></span><br><span class="line">        commandLine = ServerUtil.parseCmdLine(<span class="string">&quot;mqnamesrv&quot;</span>, args, buildCommandlineOptions(options), <span class="keyword">new</span> PosixParser());</span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">null</span> == commandLine) &#123;</span><br><span class="line">            System.exit(-<span class="number">1</span>);</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">final</span> NamesrvConfig namesrvConfig = <span class="keyword">new</span> NamesrvConfig();<span class="comment">// NameServer业务参数</span></span><br><span class="line">        <span class="keyword">final</span> NettyServerConfig nettyServerConfig = <span class="keyword">new</span> NettyServerConfig(); <span class="comment">// NameServer网络参数</span></span><br><span class="line">        nettyServerConfig.setListenPort(<span class="number">9876</span>);</span><br><span class="line">        <span class="keyword">if</span> (commandLine.hasOption(<span class="string">&#x27;c&#x27;</span>)) &#123;<span class="comment">// -c 可以指定 NameServer 的配置文件，如果不指定，则使用默认值</span></span><br><span class="line">            String file = commandLine.getOptionValue(<span class="string">&#x27;c&#x27;</span>);</span><br><span class="line">            <span class="keyword">if</span> (file != <span class="keyword">null</span>) &#123;</span><br><span class="line">                InputStream in = <span class="keyword">new</span> BufferedInputStream(<span class="keyword">new</span> FileInputStream(file));</span><br><span class="line">                properties = <span class="keyword">new</span> Properties();</span><br><span class="line">                properties.load(in);</span><br><span class="line">                MixAll.properties2Object(properties, namesrvConfig);</span><br><span class="line">                MixAll.properties2Object(properties, nettyServerConfig);</span><br><span class="line"></span><br><span class="line">                namesrvConfig.setConfigStorePath(file);</span><br><span class="line"></span><br><span class="line">                System.out.printf(<span class="string">&quot;load config properties file OK, &quot;</span> + file + <span class="string">&quot;%n&quot;</span>);</span><br><span class="line">                in.close();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (commandLine.hasOption(<span class="string">&#x27;p&#x27;</span>)) &#123;<span class="comment">// -p 打印 NameServer 的配置参数信息。打印完参数后退出进程</span></span><br><span class="line">            MixAll.printObjectProperties(<span class="keyword">null</span>, namesrvConfig);</span><br><span class="line">            MixAll.printObjectProperties(<span class="keyword">null</span>, nettyServerConfig);</span><br><span class="line">            System.exit(<span class="number">0</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        MixAll.properties2Object(ServerUtil.commandLine2Properties(commandLine), namesrvConfig);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">null</span> == namesrvConfig.getRocketmqHome()) &#123;</span><br><span class="line">            System.out.printf(<span class="string">&quot;Please set the %s variable in your environment to match the location of the RocketMQ installation%n&quot;</span>, MixAll.ROCKETMQ_HOME_ENV);</span><br><span class="line">            System.exit(-<span class="number">2</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();</span><br><span class="line">        JoranConfigurator configurator = <span class="keyword">new</span> JoranConfigurator();</span><br><span class="line">        configurator.setContext(lc);</span><br><span class="line">        lc.reset();</span><br><span class="line">        configurator.doConfigure(namesrvConfig.getRocketmqHome() + <span class="string">&quot;/conf/logback_namesrv.xml&quot;</span>);</span><br><span class="line">        <span class="keyword">final</span> Logger log = LoggerFactory.getLogger(LoggerName.NAMESRV_LOGGER_NAME);</span><br><span class="line"></span><br><span class="line">        MixAll.printObjectProperties(log, namesrvConfig);</span><br><span class="line">        MixAll.printObjectProperties(log, nettyServerConfig);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">final</span> NamesrvController controller = <span class="keyword">new</span> NamesrvController(namesrvConfig, nettyServerConfig);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// remember all configs to prevent discard </span></span><br><span class="line">        <span class="comment">// 记住所有配置以防止丢弃</span></span><br><span class="line">        controller.getConfiguration().registerConfig(properties);</span><br><span class="line">		<span class="comment">// ①NamesrvController类实例化</span></span><br><span class="line">        <span class="keyword">boolean</span> initResult = controller.initialize();</span><br><span class="line">        <span class="keyword">if</span> (!initResult) &#123;</span><br><span class="line">            controller.shutdown();</span><br><span class="line">            System.exit(-<span class="number">3</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 注册JVM钩子函数代码，以便监听Broker，移除处于不激活状态的Broker</span></span><br><span class="line">        <span class="comment">// 在JVM退出之前，调用ShutdownHookThread服务来进行关闭服务，释放资源，实现优雅停机。</span></span><br><span class="line">        Runtime.getRuntime().addShutdownHook(<span class="keyword">new</span> ShutdownHookThread(log, <span class="keyword">new</span> Callable&lt;Void&gt;() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> Void <span class="title">call</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">                controller.shutdown();</span><br><span class="line">                <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;));</span><br><span class="line"></span><br><span class="line">        controller.start();</span><br><span class="line"></span><br><span class="line">        String tip = <span class="string">&quot;The Name Server boot success. serializeType=&quot;</span> + RemotingCommand.getSerializeTypeConfigInThisServer();</span><br><span class="line">        log.info(tip);</span><br><span class="line">        System.out.printf(tip + <span class="string">&quot;%n&quot;</span>);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> controller;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Throwable e) &#123;</span><br><span class="line">        e.printStackTrace();</span><br><span class="line">        System.exit(-<span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="①NamesrvController类实例化"><a href="#①NamesrvController类实例化" class="headerlink" title="①NamesrvController类实例化"></a>①NamesrvController类实例化</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">initialize</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">// KVConfigManager类默认是从 /namesrv/kvConfig.json 配置文件中加载NameServer的配置参数.将配置参数加载保存到configTable变量中。</span></span><br><span class="line">    <span class="keyword">this</span>.kvConfigManager.load();</span><br><span class="line">    <span class="comment">// 创建NettyServer网络处理对象</span></span><br><span class="line">    <span class="keyword">this</span>.remotingServer = <span class="keyword">new</span> NettyRemotingServer(<span class="keyword">this</span>.nettyServerConfig, <span class="keyword">this</span>.brokerHousekeepingService);</span><br><span class="line">    <span class="comment">// 线程池，用来处理broker和client提交的请求，其工作线程的大小可配置</span></span><br><span class="line">    <span class="keyword">this</span>.remotingExecutor =</span><br><span class="line">        Executors.newFixedThreadPool(nettyServerConfig.getServerWorkerThreads(), <span class="keyword">new</span> ThreadFactoryImpl(<span class="string">&quot;RemotingExecutorThread_&quot;</span>));</span><br><span class="line">    <span class="comment">//②注册 NameServer 服务接受请求的处理类</span></span><br><span class="line">    <span class="keyword">this</span>.registerProcessor();</span><br><span class="line">    <span class="comment">// 定时任务1：NameServer每隔10s扫描一次Broker，移除处于不激活状态的Broker</span></span><br><span class="line">    <span class="keyword">this</span>.scheduledExecutorService.scheduleAtFixedRate(<span class="keyword">new</span> Runnable() &#123;</span><br><span class="line"></span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="comment">// ④RouteInfoManager类存储所有请求数据</span></span><br><span class="line">            NamesrvController.<span class="keyword">this</span>.routeInfoManager.scanNotActiveBroker();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;, <span class="number">5</span>, <span class="number">10</span>, TimeUnit.SECONDS);</span><br><span class="line">    <span class="comment">// 定时任务2：NameServer每隔10min打印一次KV配置</span></span><br><span class="line">    <span class="keyword">this</span>.scheduledExecutorService.scheduleAtFixedRate(<span class="keyword">new</span> Runnable() &#123;</span><br><span class="line"></span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            NamesrvController.<span class="keyword">this</span>.kvConfigManager.printAllPeriodically();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;, <span class="number">1</span>, <span class="number">10</span>, TimeUnit.MINUTES);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="②注册-NameServer-服务接受请求的处理类"><a href="#②注册-NameServer-服务接受请求的处理类" class="headerlink" title="②注册 NameServer 服务接受请求的处理类"></a>②注册 NameServer 服务接受请求的处理类</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">registerProcessor</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (namesrvConfig.isClusterTest()) &#123;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">this</span>.remotingServer.registerDefaultProcessor(<span class="keyword">new</span> ClusterTestRequestProcessor(<span class="keyword">this</span>, namesrvConfig.getProductEnvName()),</span><br><span class="line">            <span class="keyword">this</span>.remotingExecutor);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">//  ③注册核心业务处理器DefaultRequestProcessor，这里是把这个处理器注册到了remotingServer中去了，通过channelEventListener监听到broker和client的请求，</span></span><br><span class="line">        <span class="comment">// 然后交给DefaultRequestProcessor进行处理，最后还是丢到线程池里面处理，根据不同的request code交给不同的processor进行处理，像registerBroker等。</span></span><br><span class="line">        <span class="keyword">this</span>.remotingServer.registerDefaultProcessor(<span class="keyword">new</span> DefaultRequestProcessor(<span class="keyword">this</span>), <span class="keyword">this</span>.remotingExecutor);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="③请求分发processRequest"><a href="#③请求分发processRequest" class="headerlink" title="③请求分发processRequest"></a>③请求分发processRequest</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// (1）RemotingCommand：自定义的协议，携带请求参数和响应（2）ChannelHandlerContext：netty的数据结构，携带channel相关的信息。</span></span><br><span class="line"><span class="comment">// processRequest 请求分发</span></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> RemotingCommand <span class="title">processRequest</span><span class="params">(ChannelHandlerContext ctx,</span></span></span><br><span class="line"><span class="function"><span class="params">    RemotingCommand request)</span> <span class="keyword">throws</span> RemotingCommandException </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (log.isDebugEnabled()) &#123;</span><br><span class="line">        log.debug(<span class="string">&quot;receive request, &#123;&#125; &#123;&#125; &#123;&#125;&quot;</span>,</span><br><span class="line">            request.getCode(),</span><br><span class="line">            RemotingHelper.parseChannelRemoteAddr(ctx.channel()),</span><br><span class="line">            request);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">switch</span> (request.getCode()) &#123;</span><br><span class="line">        <span class="keyword">case</span> RequestCode.PUT_KV_CONFIG:<span class="comment">// 向Namesrv追加KV配置</span></span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">this</span>.putKVConfig(ctx, request);</span><br><span class="line">        <span class="keyword">case</span> RequestCode.GET_KV_CONFIG:<span class="comment">// 从Namesrv获取KV配置</span></span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">this</span>.getKVConfig(ctx, request);</span><br><span class="line">        <span class="keyword">case</span> RequestCode.DELETE_KV_CONFIG:<span class="comment">// 从Namesrv删除KV配置</span></span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">this</span>.deleteKVConfig(ctx, request);</span><br><span class="line">        <span class="keyword">case</span> RequestCode.REGISTER_BROKER:<span class="comment">// 注册一个Broker，数据都是持久化的，如果存在则覆盖配置</span></span><br><span class="line">            Version brokerVersion = MQVersion.value2Version(request.getVersion());</span><br><span class="line">            <span class="keyword">if</span> (brokerVersion.ordinal() &gt;= MQVersion.Version.V3_0_11.ordinal()) &#123;</span><br><span class="line">                <span class="keyword">return</span> <span class="keyword">this</span>.registerBrokerWithFilterServer(ctx, request);</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="keyword">return</span> <span class="keyword">this</span>.registerBroker(ctx, request);</span><br><span class="line">            &#125;</span><br><span class="line">        <span class="keyword">case</span> RequestCode.UNREGISTER_BROKER:<span class="comment">// 卸载一个Broker，数据都是持久化的</span></span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">this</span>.unregisterBroker(ctx, request);</span><br><span class="line">        <span class="keyword">case</span> RequestCode.GET_ROUTEINTO_BY_TOPIC:<span class="comment">// 根据Topic获取Broker Name、topic配置信息</span></span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">this</span>.getRouteInfoByTopic(ctx, request);</span><br><span class="line">        <span class="keyword">case</span> RequestCode.GET_BROKER_CLUSTER_INFO:<span class="comment">// 获取注册到Name Server的所有Broker集群信息</span></span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">this</span>.getBrokerClusterInfo(ctx, request);</span><br><span class="line">        <span class="keyword">case</span> RequestCode.WIPE_WRITE_PERM_OF_BROKER:<span class="comment">// 去掉BrokerName的写权限</span></span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">this</span>.wipeWritePermOfBroker(ctx, request);</span><br><span class="line">        <span class="keyword">case</span> RequestCode.GET_ALL_TOPIC_LIST_FROM_NAMESERVER:<span class="comment">// 从Name Server获取完整Topic列表</span></span><br><span class="line">            <span class="keyword">return</span> getAllTopicListFromNameserver(ctx, request);</span><br><span class="line">        <span class="keyword">case</span> RequestCode.DELETE_TOPIC_IN_NAMESRV:<span class="comment">// 从Namesrv删除Topic配置</span></span><br><span class="line">            <span class="keyword">return</span> deleteTopicInNamesrv(ctx, request);</span><br><span class="line">        <span class="keyword">case</span> RequestCode.GET_KVLIST_BY_NAMESPACE:<span class="comment">// 通过NameSpace获取所有的KV List</span></span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">this</span>.getKVListByNamespace(ctx, request);</span><br><span class="line">        <span class="keyword">case</span> RequestCode.GET_TOPICS_BY_CLUSTER:<span class="comment">// 获取指定集群下的所有 topic</span></span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">this</span>.getTopicsByCluster(ctx, request);</span><br><span class="line">        <span class="keyword">case</span> RequestCode.GET_SYSTEM_TOPIC_LIST_FROM_NS:<span class="comment">// 获取所有系统内置 Topic 列表</span></span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">this</span>.getSystemTopicListFromNs(ctx, request);</span><br><span class="line">        <span class="keyword">case</span> RequestCode.GET_UNIT_TOPIC_LIST:<span class="comment">// 单元化相关 topic</span></span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">this</span>.getUnitTopicList(ctx, request);</span><br><span class="line">        <span class="keyword">case</span> RequestCode.GET_HAS_UNIT_SUB_TOPIC_LIST:<span class="comment">// 获取含有单元化订阅组的 Topic 列表</span></span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">this</span>.getHasUnitSubTopicList(ctx, request);</span><br><span class="line">        <span class="keyword">case</span> RequestCode.GET_HAS_UNIT_SUB_UNUNIT_TOPIC_LIST:<span class="comment">// 获取含有单元化订阅组的非单元化</span></span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">this</span>.getHasUnitSubUnUnitTopicList(ctx, request);</span><br><span class="line">        <span class="keyword">case</span> RequestCode.UPDATE_NAMESRV_CONFIG:<span class="comment">// 更新Name Server配置</span></span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">this</span>.updateConfig(ctx, request);</span><br><span class="line">        <span class="keyword">case</span> RequestCode.GET_NAMESRV_CONFIG:<span class="comment">// 获取NameSrv配置</span></span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">this</span>.getConfig(ctx, request);</span><br><span class="line">        <span class="keyword">default</span>:</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>④RouteInfoManager类存储所有请求数据</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">RouteInfoManager</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Logger log = LoggerFactory.getLogger(LoggerName.NAMESRV_LOGGER_NAME);</span><br><span class="line">    <span class="comment">// 表示一个broker距离上次发心跳包的最长时间，即120秒</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">static</span> <span class="keyword">long</span> BROKER_CHANNEL_EXPIRED_TIME = <span class="number">1000</span> * <span class="number">60</span> * <span class="number">2</span>;</span><br><span class="line">    <span class="comment">// 使用可重入读写锁实现并发安全、使用轻量级的非线程安全容器实现高效并发</span></span><br><span class="line">    <span class="comment">// ReentrantLock是一个排他锁，同一时间只允许一个线程访问，而ReentrantReadWriteLock允许多个读线程同时访问，但不允许写线程和读线程、写线程和写线程同时访问。相对于排他锁，提高了并发性</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> ReadWriteLock lock = <span class="keyword">new</span> ReentrantReadWriteLock();</span><br><span class="line">    <span class="comment">// 用于管理topic和属于这个topic的队列的映射关系</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> HashMap&lt;String<span class="comment">/* topic */</span>, List&lt;QueueData&gt;&gt; topicQueueTable;</span><br><span class="line">    <span class="comment">// 用于管理某个broker和它对应的信息</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> HashMap&lt;String<span class="comment">/* brokerName */</span>, BrokerData&gt; brokerAddrTable;</span><br><span class="line">    <span class="comment">// 用于管理broker集群和集群中对应的broker的映射关系</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> HashMap&lt;String<span class="comment">/* clusterName */</span>, Set&lt;String<span class="comment">/* brokerName */</span>&gt;&gt; clusterAddrTable;</span><br><span class="line">    <span class="comment">// 用于管理broker的存活信息</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> HashMap&lt;String<span class="comment">/* brokerAddr */</span>, BrokerLiveInfo&gt; brokerLiveTable;</span><br><span class="line">    <span class="comment">// 用于管理broker和过滤服务列表</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> HashMap&lt;String<span class="comment">/* brokerAddr */</span>, List&lt;String&gt;<span class="comment">/* Filter Server */</span>&gt; filterServerTable;</span><br><span class="line">    <span class="comment">//....</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里的lock是ReentrantReadWriteLock非公平锁，优点在于允许多个线程同时访问，但不允许写线程和读线程、写线程和写线程同时访问。相当于排它锁，提高了并发性。</p>
+<p>这样整个NameSrv的启动就完成了。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/RocketMQ/" rel="tag"># RocketMQ</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/09/17/%E5%B9%B6%E5%8F%91%E7%B3%BB%E5%88%97%E4%B9%8B%E9%87%8D%E5%85%A5%E9%94%81ReentrantLock/" rel="next" title="并发系列之重入锁ReentrantLock">
+                <i class="fa fa-chevron-left"></i> 并发系列之重入锁ReentrantLock
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/03/20/%E8%81%8A%E8%81%8Ajava%E9%9B%86%E5%90%88/" rel="prev" title="聊聊java集合">
+                聊聊java集合 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/cat.jpg"
+                alt="" />
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/%20%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">66</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">16</span>
+                  <span class="site-state-item-name">标签</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/yestermorrow" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#RocketMQ%E8%B7%AF%E7%94%B1%E4%B8%AD%E5%BF%83NameServer"><span class="nav-number">1.</span> <span class="nav-text">RocketMQ路由中心NameServer</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#NameServer%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1"><span class="nav-number">1.0.1.</span> <span class="nav-text">NameServer架构设计</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#NameServer%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B"><span class="nav-number">1.0.2.</span> <span class="nav-text">NameServer启动流程</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#NameServer%E5%90%AF%E5%8A%A8%E7%9A%84%E4%B8%BB%E7%B1%BB%E2%80%94%E2%80%94NamesrvStartup"><span class="nav-number">1.0.2.0.1.</span> <span class="nav-text">NameServer启动的主类——NamesrvStartup</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E2%91%A0NamesrvController%E7%B1%BB%E5%AE%9E%E4%BE%8B%E5%8C%96"><span class="nav-number">1.0.2.0.2.</span> <span class="nav-text">①NamesrvController类实例化</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E2%91%A1%E6%B3%A8%E5%86%8C-NameServer-%E6%9C%8D%E5%8A%A1%E6%8E%A5%E5%8F%97%E8%AF%B7%E6%B1%82%E7%9A%84%E5%A4%84%E7%90%86%E7%B1%BB"><span class="nav-number">1.0.2.0.3.</span> <span class="nav-text">②注册 NameServer 服务接受请求的处理类</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E2%91%A2%E8%AF%B7%E6%B1%82%E5%88%86%E5%8F%91processRequest"><span class="nav-number">1.0.2.0.4.</span> <span class="nav-text">③请求分发processRequest</span></a></li></ol></li></ol></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">yestermorrow</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

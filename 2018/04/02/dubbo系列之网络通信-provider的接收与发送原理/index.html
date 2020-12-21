@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="dubbo," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="dubbo系列之网络通信-provider的接收与发送原理简要绿色区域在《dubbo系列之服务发布-流程》里面有提到过，这里简单回顾一下。 ThreadPool：线程池，在NettyServer类中设置了boss和wroker线程池。doOpen()12345678910111213141516171819202122232425262728293031protected void doOpen(">
+<meta property="og:type" content="article">
+<meta property="og:title" content="dubbo系列之网络通信-provider的接收与发送原理">
+<meta property="og:url" content="http://yoursite.com/2018/04/02/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1-provider%E7%9A%84%E6%8E%A5%E6%94%B6%E4%B8%8E%E5%8F%91%E9%80%81%E5%8E%9F%E7%90%86/index.html">
+<meta property="og:site_name" content="Yestermorrow">
+<meta property="og:description" content="dubbo系列之网络通信-provider的接收与发送原理简要绿色区域在《dubbo系列之服务发布-流程》里面有提到过，这里简单回顾一下。 ThreadPool：线程池，在NettyServer类中设置了boss和wroker线程池。doOpen()12345678910111213141516171819202122232425262728293031protected void doOpen(">
+<meta property="og:locale">
+<meta property="og:image" content="http://yoursite.com/2018/04/02/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1-provider%E7%9A%84%E6%8E%A5%E6%94%B6%E4%B8%8E%E5%8F%91%E9%80%81%E5%8E%9F%E7%90%86/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1-provider%E7%9A%84%E6%8E%A5%E6%94%B6%E4%B8%8E%E5%8F%91%E9%80%81%E5%8E%9F%E7%90%86%5Cdubbo%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1%E6%9E%B6%E6%9E%84%E5%9B%BE-2.png">
+<meta property="og:image" content="http://yoursite.com/2018/04/02/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1-provider%E7%9A%84%E6%8E%A5%E6%94%B6%E4%B8%8E%E5%8F%91%E9%80%81%E5%8E%9F%E7%90%86/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1-provider%E7%9A%84%E6%8E%A5%E6%94%B6%E4%B8%8E%E5%8F%91%E9%80%81%E5%8E%9F%E7%90%86/response.png">
+<meta property="article:published_time" content="2018-04-02T12:26:36.000Z">
+<meta property="article:modified_time" content="2018-08-28T13:58:08.000Z">
+<meta property="article:author" content="yestermorrow">
+<meta property="article:tag" content="dubbo">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2018/04/02/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1-provider%E7%9A%84%E6%8E%A5%E6%94%B6%E4%B8%8E%E5%8F%91%E9%80%81%E5%8E%9F%E7%90%86/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1-provider%E7%9A%84%E6%8E%A5%E6%94%B6%E4%B8%8E%E5%8F%91%E9%80%81%E5%8E%9F%E7%90%86%5Cdubbo%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1%E6%9E%B6%E6%9E%84%E5%9B%BE-2.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/04/02/dubbo系列之网络通信-provider的接收与发送原理/"/>
+
+
+
+
+
+  <title>dubbo系列之网络通信-provider的接收与发送原理 | Yestermorrow</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 5.3.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Yestermorrow</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/%20" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/%20" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/04/02/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1-provider%E7%9A%84%E6%8E%A5%E6%94%B6%E4%B8%8E%E5%8F%91%E9%80%81%E5%8E%9F%E7%90%86/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/cat.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Yestermorrow">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">dubbo系列之网络通信-provider的接收与发送原理</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-04-02T20:26:36+08:00">
+                2018-04-02
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="dubbo系列之网络通信-provider的接收与发送原理"><a href="#dubbo系列之网络通信-provider的接收与发送原理" class="headerlink" title="dubbo系列之网络通信-provider的接收与发送原理"></a>dubbo系列之网络通信-provider的接收与发送原理</h1><h3 id="简要"><a href="#简要" class="headerlink" title="简要"></a>简要</h3><p><img src="dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1-provider%E7%9A%84%E6%8E%A5%E6%94%B6%E4%B8%8E%E5%8F%91%E9%80%81%E5%8E%9F%E7%90%86%5Cdubbo%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1%E6%9E%B6%E6%9E%84%E5%9B%BE-2.png">绿色区域在《dubbo系列之服务发布-流程》里面有提到过，这里简单回顾一下。</p>
+<h5 id="ThreadPool：线程池，在NettyServer类中设置了boss和wroker线程池。"><a href="#ThreadPool：线程池，在NettyServer类中设置了boss和wroker线程池。" class="headerlink" title="ThreadPool：线程池，在NettyServer类中设置了boss和wroker线程池。"></a>ThreadPool：线程池，在NettyServer类中设置了boss和wroker线程池。</h5><h6 id="doOpen"><a href="#doOpen" class="headerlink" title="doOpen()"></a>doOpen()</h6><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">doOpen</span><span class="params">()</span> <span class="keyword">throws</span> Throwable </span>&#123;</span><br><span class="line">    NettyHelper.setNettyLoggerFactory();</span><br><span class="line">    <span class="comment">// 设置线程池，名为boss wroker</span></span><br><span class="line">    ExecutorService boss = Executors.newCachedThreadPool(<span class="keyword">new</span> NamedThreadFactory(<span class="string">&quot;NettyServerBoss&quot;</span>, <span class="keyword">true</span>));</span><br><span class="line">    ExecutorService worker = Executors.newCachedThreadPool(<span class="keyword">new</span> NamedThreadFactory(<span class="string">&quot;NettyServerWorker&quot;</span>, <span class="keyword">true</span>));</span><br><span class="line">    <span class="comment">// 数量为本机CPU核数 + 1</span></span><br><span class="line">    ChannelFactory channelFactory = <span class="keyword">new</span> NioServerSocketChannelFactory(boss, worker, getUrl().getPositiveParameter(Constants.IO_THREADS_KEY, Constants.DEFAULT_IO_THREADS));</span><br><span class="line">    bootstrap = <span class="keyword">new</span> ServerBootstrap(channelFactory);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">final</span> NettyHandler nettyHandler = <span class="keyword">new</span> NettyHandler(getUrl(), <span class="keyword">this</span>);</span><br><span class="line">    channels = nettyHandler.getChannels();</span><br><span class="line">    <span class="comment">// https://issues.jboss.org/browse/NETTY-365</span></span><br><span class="line">    <span class="comment">// https://issues.jboss.org/browse/NETTY-379</span></span><br><span class="line">    <span class="comment">// final Timer timer = new HashedWheelTimer(new NamedThreadFactory(&quot;NettyIdleTimer&quot;, true));</span></span><br><span class="line">    bootstrap.setPipelineFactory(<span class="keyword">new</span> ChannelPipelineFactory() &#123;</span><br><span class="line">        <span class="function"><span class="keyword">public</span> ChannelPipeline <span class="title">getPipeline</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            NettyCodecAdapter adapter = <span class="keyword">new</span> NettyCodecAdapter(getCodec(), getUrl(), NettyServer.<span class="keyword">this</span>);</span><br><span class="line">            ChannelPipeline pipeline = Channels.pipeline();</span><br><span class="line">            <span class="comment">/*int idleTimeout = getIdleTimeout();</span></span><br><span class="line"><span class="comment">            if (idleTimeout &gt; 10000) &#123;</span></span><br><span class="line"><span class="comment">                pipeline.addLast(&quot;timer&quot;, new IdleStateHandler(timer, idleTimeout / 1000, 0, 0));</span></span><br><span class="line"><span class="comment">            &#125;*/</span></span><br><span class="line">            pipeline.addLast(<span class="string">&quot;decoder&quot;</span>, adapter.getDecoder());</span><br><span class="line">            pipeline.addLast(<span class="string">&quot;encoder&quot;</span>, adapter.getEncoder());</span><br><span class="line">            pipeline.addLast(<span class="string">&quot;handler&quot;</span>, nettyHandler);</span><br><span class="line">            <span class="keyword">return</span> pipeline;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">    <span class="comment">// bind</span></span><br><span class="line">    channel = bootstrap.bind(getBindAddress());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="Server：实现类就有NettyServer类以及MinaNetty类。transport：网络传输层，抽象mina和netty为统一接口，以Message为中心；"><a href="#Server：实现类就有NettyServer类以及MinaNetty类。transport：网络传输层，抽象mina和netty为统一接口，以Message为中心；" class="headerlink" title="Server：实现类就有NettyServer类以及MinaNetty类。transport：网络传输层，抽象mina和netty为统一接口，以Message为中心；"></a>Server：实现类就有NettyServer类以及MinaNetty类。transport：网络传输层，抽象mina和netty为统一接口，以Message为中心；</h5><p>接下来，我们就要开始介绍上面架构图的红色区域，也是这篇博客的重点。</p>
+<h3 id="源码解析"><a href="#源码解析" class="headerlink" title="源码解析"></a>源码解析</h3><h4 id="NettyServer类"><a href="#NettyServer类" class="headerlink" title="NettyServer类"></a>NettyServer类</h4><h5 id="doOpen-1"><a href="#doOpen-1" class="headerlink" title="doOpen()"></a>doOpen()</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">bootstrap.setPipelineFactory(<span class="keyword">new</span> ChannelPipelineFactory() &#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> ChannelPipeline <span class="title">getPipeline</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        NettyCodecAdapter adapter = <span class="keyword">new</span> NettyCodecAdapter(getCodec(), getUrl(), NettyServer.<span class="keyword">this</span>);</span><br><span class="line">        ChannelPipeline pipeline = Channels.pipeline();</span><br><span class="line">        <span class="comment">/*int idleTimeout = getIdleTimeout();</span></span><br><span class="line"><span class="comment">        if (idleTimeout &gt; 10000) &#123;</span></span><br><span class="line"><span class="comment">            pipeline.addLast(&quot;timer&quot;, new IdleStateHandler(timer, idleTimeout / 1000, 0, 0));</span></span><br><span class="line"><span class="comment">        &#125;*/</span></span><br><span class="line">        pipeline.addLast(<span class="string">&quot;decoder&quot;</span>, adapter.getDecoder());<span class="comment">//解码</span></span><br><span class="line">        pipeline.addLast(<span class="string">&quot;encoder&quot;</span>, adapter.getEncoder());<span class="comment">//编码</span></span><br><span class="line">        pipeline.addLast(<span class="string">&quot;handler&quot;</span>, nettyHandler);<span class="comment">//处理器</span></span><br><span class="line">        <span class="keyword">return</span> pipeline;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>进入处理器</p>
+<h4 id="NettyHandler类"><a href="#NettyHandler类" class="headerlink" title="NettyHandler类"></a>NettyHandler类</h4><h5 id="messageReceived-——消息接收"><a href="#messageReceived-——消息接收" class="headerlink" title="messageReceived()——消息接收"></a>messageReceived()——消息接收</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">messageReceived</span><span class="params">(ChannelHandlerContext ctx, MessageEvent e)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    NettyChannel channel = NettyChannel.getOrAddChannel(ctx.getChannel(), url, handler);</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        handler.received(channel, e.getMessage());</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        NettyChannel.removeChannelIfDisconnected(ctx.getChannel());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="AllChannelHandler类"><a href="#AllChannelHandler类" class="headerlink" title="AllChannelHandler类"></a>AllChannelHandler类</h4><h5 id="received"><a href="#received" class="headerlink" title="received()"></a>received()</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">received</span><span class="params">(Channel channel, Object message)</span> <span class="keyword">throws</span> RemotingException </span>&#123;</span><br><span class="line">    ExecutorService cexecutor = getExecutorService();<span class="comment">//创建线程池</span></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        cexecutor.execute(<span class="keyword">new</span> ChannelEventRunnable(channel, handler, ChannelState.RECEIVED, message));<span class="comment">//线程池执行线程，debug进去</span></span><br><span class="line">    &#125; <span class="keyword">catch</span> (Throwable t) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> ExecutionException(message, channel, getClass() + <span class="string">&quot; error when process received event .&quot;</span>, t);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="ChannelEventRunnable类"><a href="#ChannelEventRunnable类" class="headerlink" title="ChannelEventRunnable类"></a>ChannelEventRunnable类</h4><h5 id="run"><a href="#run" class="headerlink" title="run()"></a>run()</h5><p>此时的state是RECEIVED</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">case</span> RECEIVED:</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        handler.received(channel, message);<span class="comment">//debug</span></span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        logger.warn(<span class="string">&quot;ChannelEventRunnable handle &quot;</span> + state + <span class="string">&quot; operation error, channel is &quot;</span> + channel</span><br><span class="line">                + <span class="string">&quot;, message is &quot;</span> + message, e);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">break</span>;</span><br></pre></td></tr></table></figure>
+<h4 id="DecodeHandler类"><a href="#DecodeHandler类" class="headerlink" title="DecodeHandler类"></a>DecodeHandler类</h4><h5 id="received-1"><a href="#received-1" class="headerlink" title="received()"></a>received()</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">received</span><span class="params">(Channel channel, Object message)</span> <span class="keyword">throws</span> RemotingException </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (message <span class="keyword">instanceof</span> Decodeable) &#123;</span><br><span class="line">        decode(message);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (message <span class="keyword">instanceof</span> Request) &#123;</span><br><span class="line">        decode(((Request) message).getData());<span class="comment">//设置编码</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (message <span class="keyword">instanceof</span> Response) &#123;</span><br><span class="line">        decode(((Response) message).getResult());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    handler.received(channel, message);<span class="comment">//debug</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="HeaderExchangeHandler类"><a href="#HeaderExchangeHandler类" class="headerlink" title="HeaderExchangeHandler类"></a>HeaderExchangeHandler类</h4><h5 id="received-2"><a href="#received-2" class="headerlink" title="received()"></a>received()</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (request.isTwoWay()) &#123;</span><br><span class="line">        Response response = handleRequest(exchangeChannel, request);<span class="comment">//网络通信接收处理，debug</span></span><br><span class="line">        channel.send(response);<span class="comment">//把接受处理的结果，发回consumer</span></span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        handler.received(exchangeChannel, request.getData());<span class="comment">//</span></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<h5 id="handleRequest"><a href="#handleRequest" class="headerlink" title="handleRequest()"></a>handleRequest()</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Object result = handler.reply(channel, msg);</span><br></pre></td></tr></table></figure>
+<h4 id="DubboProtocol类"><a href="#DubboProtocol类" class="headerlink" title="DubboProtocol类"></a>DubboProtocol类</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Object <span class="title">reply</span><span class="params">(ExchangeChannel channel, Object message)</span> <span class="keyword">throws</span> RemotingException </span>&#123;</span><br><span class="line">           <span class="keyword">if</span> (message <span class="keyword">instanceof</span> Invocation) &#123;</span><br><span class="line">               Invocation inv = (Invocation) message;</span><br><span class="line">               Invoker&lt;?&gt; invoker = getInvoker(channel, inv);<span class="comment">//debug</span></span><br><span class="line">               <span class="comment">//如果是callback 需要处理高版本调用低版本的问题</span></span><br><span class="line">               <span class="keyword">if</span> (Boolean.TRUE.toString().equals(inv.getAttachments().get(IS_CALLBACK_SERVICE_INVOKE))) &#123;</span><br><span class="line">                   String methodsStr = invoker.getUrl().getParameters().get(<span class="string">&quot;methods&quot;</span>);</span><br><span class="line">                   <span class="keyword">boolean</span> hasMethod = <span class="keyword">false</span>;</span><br><span class="line">                   <span class="keyword">if</span> (methodsStr == <span class="keyword">null</span> || methodsStr.indexOf(<span class="string">&quot;,&quot;</span>) == -<span class="number">1</span>) &#123;</span><br><span class="line">                       hasMethod = inv.getMethodName().equals(methodsStr);</span><br><span class="line">                   &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                       String[] methods = methodsStr.split(<span class="string">&quot;,&quot;</span>);</span><br><span class="line">                       <span class="keyword">for</span> (String method : methods) &#123;</span><br><span class="line">                           <span class="keyword">if</span> (inv.getMethodName().equals(method)) &#123;</span><br><span class="line">                               hasMethod = <span class="keyword">true</span>;</span><br><span class="line">                               <span class="keyword">break</span>;</span><br><span class="line">                           &#125;</span><br><span class="line">                       &#125;</span><br><span class="line">                   &#125;</span><br><span class="line">                  ...</span><br><span class="line">               &#125;</span><br><span class="line">               RpcContext.getContext().setRemoteAddress(channel.getRemoteAddress());</span><br><span class="line">               <span class="keyword">return</span> invoker.invoke(inv);<span class="comment">// debug</span></span><br><span class="line">           &#125;</span><br><span class="line">          ...</span><br><span class="line">       &#125;</span><br></pre></td></tr></table></figure>
+<h5 id="getInvoker"><a href="#getInvoker" class="headerlink" title="getInvoker()"></a>getInvoker()</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">Invoker&lt;?&gt; getInvoker(Channel channel, Invocation inv) <span class="keyword">throws</span> RemotingException &#123;</span><br><span class="line">  	...</span><br><span class="line">	<span class="comment">// 从服务暴露里面提取exporter</span></span><br><span class="line">    DubboExporter&lt;?&gt; exporter = (DubboExporter&lt;?&gt;) exporterMap.get(serviceKey);</span><br><span class="line">    ...</span><br><span class="line">    <span class="comment">//最终得到一个invoker，并返回</span></span><br><span class="line">    <span class="keyword">return</span> exporter.getInvoker();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这样invoker的值就拿到了，再次回到DubboProtocol类，执行invoker.invoke(inv);</p>
+<p>——————————————–中间省略一些monitor，context，filter———————————————————</p>
+<p>AbstractProxyInvoker—-进入代理类</p>
+<h4 id="JavassistProxyFactory类"><a href="#JavassistProxyFactory类" class="headerlink" title="JavassistProxyFactory类"></a>JavassistProxyFactory类</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Result <span class="title">invoke</span><span class="params">(Invocation invocation)</span> <span class="keyword">throws</span> RpcException </span>&#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> RpcResult(doInvoke(proxy, invocation.getMethodName(), invocation.getParameterTypes(), invocation.getArguments()));</span><br><span class="line">    &#125;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>AbstractProxyInvoker是代理类，再往下执行就是执行JavassistProxyFactory类的getInvoker方法，然后就是进入真正执行的实现类 DemoServiceImpl.sayHello，完成类的代理。</p>
+<p>这样response</p>
+<p><img src="dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1-provider%E7%9A%84%E6%8E%A5%E6%94%B6%E4%B8%8E%E5%8F%91%E9%80%81%E5%8E%9F%E7%90%86/response.png" alt="response在debug下的执行值"></p>
+<p>这样通过Response这个类，provider接收的过程就完成了。。。。。。。。。。。。。。。</p>
+<p>接着看channel.send(response)，把接受处理的结果，发回consumer。</p>
+<h4 id="NettyChannel类"><a href="#NettyChannel类" class="headerlink" title="NettyChannel类"></a>NettyChannel类</h4><h5 id="send"><a href="#send" class="headerlink" title="send()"></a>send()</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">send</span><span class="params">(Object message, <span class="keyword">boolean</span> sent)</span> <span class="keyword">throws</span> RemotingException </span>&#123;</span><br><span class="line">    <span class="keyword">super</span>.send(message, sent);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">boolean</span> success = <span class="keyword">true</span>;</span><br><span class="line">    <span class="keyword">int</span> timeout = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="comment">//最终目的：通过netty的channel发送网络数据</span></span><br><span class="line">        ChannelFuture future = channel.write(message);</span><br><span class="line">        <span class="keyword">if</span> (sent) &#123;</span><br><span class="line">            timeout = getUrl().getPositiveParameter(Constants.TIMEOUT_KEY, Constants.DEFAULT_TIMEOUT);</span><br><span class="line">            success = future.await(timeout);</span><br><span class="line">        &#125;</span><br><span class="line">        ...</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+<p>这个地方就是和上一篇博客一样了，走到了channel.write(message);将数据发回consumer。</p>
+<p>现在回过头看，博客一开始图上圈出来的红色区域。</p>
+<p><strong>Exporter</strong>：DubboProtocol类</p>
+<p><strong>Filter</strong>：ProtocolFilterWrapper ProtocolFilterWrapper ClassLoaderFilter GenericFilter TraceFilter MonitorFilter TimeoutFilter ExceptionFilter InvokerWrapper类</p>
+<p><strong>invoker</strong>：就是JavassistProxyFactory.AbstractProxyInvoker.doInvoke.通过上面的源码解析，我们能看出来invoker存储于DubboProtocol的ExporterMap里面的DubboExporter.getInvoker().</p>
+<p><strong>implement</strong>：最终实现类 DemoServiceImpl.sayHello</p>
+<p>至此：网络通信的架构图就说完了。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/dubbo/" rel="tag"># dubbo</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/03/31/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1-consumer%E5%8F%91%E9%80%81%E5%8E%9F%E7%90%86/" rel="next" title="dubbo系列之网络通信-consumer发送原理">
+                <i class="fa fa-chevron-left"></i> dubbo系列之网络通信-consumer发送原理
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/04/03/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1-consumer%E7%9A%84%E6%8E%A5%E6%94%B6%E5%8E%9F%E7%90%86/" rel="prev" title="dubbo系列之网络通信-consumer的接收原理">
+                dubbo系列之网络通信-consumer的接收原理 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/cat.jpg"
+                alt="" />
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/%20%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">66</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">16</span>
+                  <span class="site-state-item-name">标签</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/yestermorrow" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1-provider%E7%9A%84%E6%8E%A5%E6%94%B6%E4%B8%8E%E5%8F%91%E9%80%81%E5%8E%9F%E7%90%86"><span class="nav-number">1.</span> <span class="nav-text">dubbo系列之网络通信-provider的接收与发送原理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AE%80%E8%A6%81"><span class="nav-number">1.0.1.</span> <span class="nav-text">简要</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#ThreadPool%EF%BC%9A%E7%BA%BF%E7%A8%8B%E6%B1%A0%EF%BC%8C%E5%9C%A8NettyServer%E7%B1%BB%E4%B8%AD%E8%AE%BE%E7%BD%AE%E4%BA%86boss%E5%92%8Cwroker%E7%BA%BF%E7%A8%8B%E6%B1%A0%E3%80%82"><span class="nav-number">1.0.1.0.1.</span> <span class="nav-text">ThreadPool：线程池，在NettyServer类中设置了boss和wroker线程池。</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#doOpen"><span class="nav-number">1.0.1.0.1.1.</span> <span class="nav-text">doOpen()</span></a></li></ol></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Server%EF%BC%9A%E5%AE%9E%E7%8E%B0%E7%B1%BB%E5%B0%B1%E6%9C%89NettyServer%E7%B1%BB%E4%BB%A5%E5%8F%8AMinaNetty%E7%B1%BB%E3%80%82transport%EF%BC%9A%E7%BD%91%E7%BB%9C%E4%BC%A0%E8%BE%93%E5%B1%82%EF%BC%8C%E6%8A%BD%E8%B1%A1mina%E5%92%8Cnetty%E4%B8%BA%E7%BB%9F%E4%B8%80%E6%8E%A5%E5%8F%A3%EF%BC%8C%E4%BB%A5Message%E4%B8%BA%E4%B8%AD%E5%BF%83%EF%BC%9B"><span class="nav-number">1.0.1.0.2.</span> <span class="nav-text">Server：实现类就有NettyServer类以及MinaNetty类。transport：网络传输层，抽象mina和netty为统一接口，以Message为中心；</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90"><span class="nav-number">1.0.2.</span> <span class="nav-text">源码解析</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#NettyServer%E7%B1%BB"><span class="nav-number">1.0.2.1.</span> <span class="nav-text">NettyServer类</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#doOpen-1"><span class="nav-number">1.0.2.1.1.</span> <span class="nav-text">doOpen()</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#NettyHandler%E7%B1%BB"><span class="nav-number">1.0.2.2.</span> <span class="nav-text">NettyHandler类</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#messageReceived-%E2%80%94%E2%80%94%E6%B6%88%E6%81%AF%E6%8E%A5%E6%94%B6"><span class="nav-number">1.0.2.2.1.</span> <span class="nav-text">messageReceived()——消息接收</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#AllChannelHandler%E7%B1%BB"><span class="nav-number">1.0.2.3.</span> <span class="nav-text">AllChannelHandler类</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#received"><span class="nav-number">1.0.2.3.1.</span> <span class="nav-text">received()</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#ChannelEventRunnable%E7%B1%BB"><span class="nav-number">1.0.2.4.</span> <span class="nav-text">ChannelEventRunnable类</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#run"><span class="nav-number">1.0.2.4.1.</span> <span class="nav-text">run()</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#DecodeHandler%E7%B1%BB"><span class="nav-number">1.0.2.5.</span> <span class="nav-text">DecodeHandler类</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#received-1"><span class="nav-number">1.0.2.5.1.</span> <span class="nav-text">received()</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#HeaderExchangeHandler%E7%B1%BB"><span class="nav-number">1.0.2.6.</span> <span class="nav-text">HeaderExchangeHandler类</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#received-2"><span class="nav-number">1.0.2.6.1.</span> <span class="nav-text">received()</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#handleRequest"><span class="nav-number">1.0.2.6.2.</span> <span class="nav-text">handleRequest()</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#DubboProtocol%E7%B1%BB"><span class="nav-number">1.0.2.7.</span> <span class="nav-text">DubboProtocol类</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#getInvoker"><span class="nav-number">1.0.2.7.1.</span> <span class="nav-text">getInvoker()</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#JavassistProxyFactory%E7%B1%BB"><span class="nav-number">1.0.2.8.</span> <span class="nav-text">JavassistProxyFactory类</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#NettyChannel%E7%B1%BB"><span class="nav-number">1.0.2.9.</span> <span class="nav-text">NettyChannel类</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#send"><span class="nav-number">1.0.2.9.1.</span> <span class="nav-text">send()</span></a></li></ol></li></ol></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">yestermorrow</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

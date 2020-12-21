@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="并发," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="AQS抽象队列同步器详解及工具类拓展信号量和栅栏和倒计数器CountDownLatchJava1.5被引入的一个工具类，常被称为：倒计数器。创建对象时，传入指定数值作为线程参与的数量； await​：方法等待计数器值变为0，在这之前，线程进入等待状态； countdown：计数器数值减一，直到为0； 经常用于等待其他线程执行到某一节点，在继续执行当前线程代码 使用场景实例：1、统计线程执行的情况">
+<meta property="og:type" content="article">
+<meta property="og:title" content="AQS抽象队列同步器详解及工具类拓展">
+<meta property="og:url" content="http://yoursite.com/2019/07/02/AQS%E6%8A%BD%E8%B1%A1%E9%98%9F%E5%88%97%E5%90%8C%E6%AD%A5%E5%99%A8%E8%AF%A6%E8%A7%A3%E5%8F%8A%E5%B7%A5%E5%85%B7%E7%B1%BB%E6%8B%93%E5%B1%95/index.html">
+<meta property="og:site_name" content="Yestermorrow">
+<meta property="og:description" content="AQS抽象队列同步器详解及工具类拓展信号量和栅栏和倒计数器CountDownLatchJava1.5被引入的一个工具类，常被称为：倒计数器。创建对象时，传入指定数值作为线程参与的数量； await​：方法等待计数器值变为0，在这之前，线程进入等待状态； countdown：计数器数值减一，直到为0； 经常用于等待其他线程执行到某一节点，在继续执行当前线程代码 使用场景实例：1、统计线程执行的情况">
+<meta property="og:locale">
+<meta property="og:image" content="http://yoursite.com/2019/07/02/AQS%E6%8A%BD%E8%B1%A1%E9%98%9F%E5%88%97%E5%90%8C%E6%AD%A5%E5%99%A8%E8%AF%A6%E8%A7%A3%E5%8F%8A%E5%B7%A5%E5%85%B7%E7%B1%BB%E6%8B%93%E5%B1%95/AQS%E6%8A%BD%E8%B1%A1%E9%98%9F%E5%88%97%E5%90%8C%E6%AD%A5%E5%99%A8%E8%AF%A6%E8%A7%A3%E5%8F%8A%E5%B7%A5%E5%85%B7%E7%B1%BB%E6%8B%93%E5%B1%95/1562128290871.jpg">
+<meta property="article:published_time" content="2019-07-02T03:11:33.000Z">
+<meta property="article:modified_time" content="2019-07-03T07:16:09.000Z">
+<meta property="article:author" content="yestermorrow">
+<meta property="article:tag" content="并发">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2019/07/02/AQS%E6%8A%BD%E8%B1%A1%E9%98%9F%E5%88%97%E5%90%8C%E6%AD%A5%E5%99%A8%E8%AF%A6%E8%A7%A3%E5%8F%8A%E5%B7%A5%E5%85%B7%E7%B1%BB%E6%8B%93%E5%B1%95/AQS%E6%8A%BD%E8%B1%A1%E9%98%9F%E5%88%97%E5%90%8C%E6%AD%A5%E5%99%A8%E8%AF%A6%E8%A7%A3%E5%8F%8A%E5%B7%A5%E5%85%B7%E7%B1%BB%E6%8B%93%E5%B1%95/1562128290871.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/07/02/AQS抽象队列同步器详解及工具类拓展/"/>
+
+
+
+
+
+  <title>AQS抽象队列同步器详解及工具类拓展 | Yestermorrow</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 5.3.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Yestermorrow</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/%20" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/%20" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/07/02/AQS%E6%8A%BD%E8%B1%A1%E9%98%9F%E5%88%97%E5%90%8C%E6%AD%A5%E5%99%A8%E8%AF%A6%E8%A7%A3%E5%8F%8A%E5%B7%A5%E5%85%B7%E7%B1%BB%E6%8B%93%E5%B1%95/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/cat.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Yestermorrow">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">AQS抽象队列同步器详解及工具类拓展</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-07-02T11:11:33+08:00">
+                2019-07-02
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="AQS抽象队列同步器详解及工具类拓展"><a href="#AQS抽象队列同步器详解及工具类拓展" class="headerlink" title="AQS抽象队列同步器详解及工具类拓展"></a>AQS抽象队列同步器详解及工具类拓展</h1><h2 id="信号量和栅栏和倒计数器"><a href="#信号量和栅栏和倒计数器" class="headerlink" title="信号量和栅栏和倒计数器"></a>信号量和栅栏和倒计数器</h2><h4 id="CountDownLatch"><a href="#CountDownLatch" class="headerlink" title="CountDownLatch"></a>CountDownLatch</h4><p>Java1.5被引入的一个工具类，常被称为：倒计数器。创建对象时，传入指定数值作为线程参与的数量；</p>
+<p><strong>await​</strong>：方法等待计数器值变为0，在这之前，线程进入等待状态；</p>
+<p><strong>countdown</strong>：计数器数值减一，直到为0；</p>
+<p>经常用于等待其他线程执行到某一节点，在继续执行当前线程代码</p>
+<h5 id="使用场景实例："><a href="#使用场景实例：" class="headerlink" title="使用场景实例："></a>使用场景实例：</h5><p>1、统计线程执行的情况</p>
+<p>2、压力测试中，使用countDownLatch实现最大程度的并发处理</p>
+<p>3、多个线程之间，相互通信，比如线程异步调用完接口，结果通知</p>
+<h5 id="demo"><a href="#demo" class="headerlink" title="demo"></a>demo</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.wyj.jvm.cdl.benchmark;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.junit.Test;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.CountDownLatch;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 高并发测试场景  2000并发操作</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">BenchmarkTeatsCDL</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">benchmarkTest</span><span class="params">()</span> <span class="keyword">throws</span> IOException, Exception </span>&#123;</span><br><span class="line">        CountDownLatch countDownLatch = <span class="keyword">new</span> CountDownLatch(<span class="number">2000</span>); <span class="comment">// 2000个参与的线程</span></span><br><span class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> i =<span class="number">0</span>; i &lt; <span class="number">2000</span>; i++) &#123;</span><br><span class="line">            <span class="keyword">new</span> Thread(() -&gt; &#123;</span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    countDownLatch.countDown();<span class="comment">// -1</span></span><br><span class="line">                    <span class="comment">// TODO 并发执行这段代码</span></span><br><span class="line">                    <span class="comment">// service.method;</span></span><br><span class="line">                    countDownLatch.await(); <span class="comment">// 等待计数器归0</span></span><br><span class="line">                    System.out.println(Thread.currentThread() + <span class="string">&quot;就绪&quot;</span>);</span><br><span class="line">                &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line"></span><br><span class="line">                &#125;</span><br><span class="line">            &#125;).start();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="CyclicBarrier"><a href="#CyclicBarrier" class="headerlink" title="CyclicBarrier"></a>CyclicBarrier</h4><p>也是1.5加入的，又称为“线程栅栏”</p>
+<p>创建对象时，执行栅栏线程数量。</p>
+<p>await：等指定数量的线程都处于等待状态时，继续执行后续代码。</p>
+<p>barrierAction：线程数量到了指定量之后，自动触发执行指定任务。</p>
+<p><strong>和CountDownLatch重要区别在于，CyclicBarrier对象可多次触发执行；</strong></p>
+<h5 id="典型场景："><a href="#典型场景：" class="headerlink" title="典型场景："></a>典型场景：</h5><p>1、数据量比较大时，实现批量插入数据到数据库；</p>
+<p>2、数据统计，30个线程统计30天数据，全部统计完毕后，执行汇总</p>
+<h5 id="demo-1"><a href="#demo-1" class="headerlink" title="demo"></a>demo</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.wyj.jvm.cdl.benchmark;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.junit.Test;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.CountDownLatch;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 高并发测试场景  2000并发操作</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">BenchmarkTeatsCDL</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">benchmarkTest</span><span class="params">()</span> <span class="keyword">throws</span> IOException, Exception </span>&#123;</span><br><span class="line">        CyclicBarrier cyclicBarrier = <span class="keyword">new</span> CyclicBarrier(<span class="number">500</span>); <span class="comment">// 2000个参与的线程</span></span><br><span class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> i =<span class="number">0</span>; i &lt; <span class="number">2000</span>; i++) &#123;</span><br><span class="line">          <span class="comment">// 场景调整：压力测试，直接怼2000线程~~ 2000线程，分成4波去发起，500一批，</span></span><br><span class="line">            <span class="keyword">new</span> Thread(() -&gt; &#123;</span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    cyclicBarrier.await(); <span class="comment">// 等待栅栏开启。500</span></span><br><span class="line">                  	System.out.println(Thread.currentThread() + <span class="string">&quot;就绪&quot;</span>);</span><br><span class="line">                    <span class="comment">// TODO 并发执行这段代码</span></span><br><span class="line">                    <span class="comment">// service.method;</span></span><br><span class="line">                &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line"></span><br><span class="line">                &#125;</span><br><span class="line">            &#125;).start();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="Semaphore"><a href="#Semaphore" class="headerlink" title="Semaphore"></a>Semaphore</h4><p>又称”信号量“，控制多个线程争抢许可。</p>
+<p><strong>acquire</strong>：获取一个许可，如果没有就等待，</p>
+<p><strong>release</strong>：释放一个许可。</p>
+<p><strong>availablePermits</strong>：方法得到可用的许可数目</p>
+<h5 id="典型场景"><a href="#典型场景" class="headerlink" title="典型场景"></a>典型场景</h5><p>1、代码并发处理限流</p>
+<h5 id="demo-2"><a href="#demo-2" class="headerlink" title="demo"></a>demo</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.wyj.jvm.semaphore;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.Random;</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.Semaphore;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 信号量机制</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SemaphoreDemo</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        SemaphoreDemo semaphoreTest = <span class="keyword">new</span> SemaphoreDemo();</span><br><span class="line">        <span class="keyword">int</span> N = <span class="number">9</span>;            <span class="comment">// 客人数量</span></span><br><span class="line">        Semaphore semaphore = <span class="keyword">new</span> Semaphore(<span class="number">5</span>); <span class="comment">// 手牌数量，限制请求数量</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; N; i++) &#123;</span><br><span class="line">            String vipNo = <span class="string">&quot;vip-00&quot;</span> + i;</span><br><span class="line">            <span class="keyword">new</span> Thread(() -&gt; &#123;</span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    semaphore.acquire(); <span class="comment">// 获取令牌,没拿到的就等</span></span><br><span class="line"><span class="comment">//                    System.out.println(semaphore.count);</span></span><br><span class="line">                    semaphoreTest.service(vipNo); <span class="comment">// 实现了对service方法的限流</span></span><br><span class="line"></span><br><span class="line">                    semaphore.release(); <span class="comment">// 释放令牌,令牌数+1</span></span><br><span class="line">                &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">                    e.printStackTrace();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;).start();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 限流 控制5个线程 同时访问</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">service</span><span class="params">(String vipNo)</span> <span class="keyword">throws</span> InterruptedException </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;楼上出来迎接贵宾一位，贵宾编号&quot;</span> + vipNo + <span class="string">&quot;，...&quot;</span>);</span><br><span class="line">        Thread.sleep(<span class="keyword">new</span> Random().nextInt(<span class="number">3000</span>));</span><br><span class="line">        System.out.println(<span class="string">&quot;欢送贵宾出门，贵宾编号&quot;</span> + vipNo);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>运行结果</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">楼上出来迎接贵宾一位，贵宾编号vip-000，...</span><br><span class="line">楼上出来迎接贵宾一位，贵宾编号vip-001，...</span><br><span class="line">楼上出来迎接贵宾一位，贵宾编号vip-002，...</span><br><span class="line">楼上出来迎接贵宾一位，贵宾编号vip-003，...</span><br><span class="line">楼上出来迎接贵宾一位，贵宾编号vip-004，...</span><br><span class="line">欢送贵宾出门，贵宾编号vip-000</span><br><span class="line">楼上出来迎接贵宾一位，贵宾编号vip-005，...</span><br><span class="line">欢送贵宾出门，贵宾编号vip-003</span><br><span class="line">楼上出来迎接贵宾一位，贵宾编号vip-006，...</span><br><span class="line">欢送贵宾出门，贵宾编号vip-002</span><br><span class="line">楼上出来迎接贵宾一位，贵宾编号vip-007，...</span><br><span class="line">欢送贵宾出门，贵宾编号vip-004</span><br><span class="line">楼上出来迎接贵宾一位，贵宾编号vip-008，...</span><br><span class="line">欢送贵宾出门，贵宾编号vip-005</span><br><span class="line">欢送贵宾出门，贵宾编号vip-001</span><br><span class="line">欢送贵宾出门，贵宾编号vip-008</span><br><span class="line">欢送贵宾出门，贵宾编号vip-006</span><br><span class="line">欢送贵宾出门，贵宾编号vip-007</span><br></pre></td></tr></table></figure>
+<p>上面三个jdk类其实内部实现相似，都是将线程先挂起，达到某条件的时候，再运行。</p>
+<h4 id="自己手写一个CountDownLatch"><a href="#自己手写一个CountDownLatch" class="headerlink" title="自己手写一个CountDownLatch"></a>自己手写一个CountDownLatch</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.wyj.jvm.cdl;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.CountDownLatch;</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.CyclicBarrier;</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.LinkedBlockingQueue;</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.TimeUnit;</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.atomic.AtomicInteger;</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.atomic.AtomicReference;</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.locks.Condition;</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.locks.Lock;</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.locks.LockSupport;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyCDL</span> </span>&#123;</span><br><span class="line">    AtomicInteger count = <span class="keyword">null</span>; <span class="comment">// 共享资源 -- 可以被一定数量线程</span></span><br><span class="line">    <span class="comment">// 需要锁池</span></span><br><span class="line">    LinkedBlockingQueue&lt;Thread&gt; waiters = <span class="keyword">new</span> LinkedBlockingQueue&lt;&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">MyCDL</span><span class="params">(<span class="keyword">int</span> count)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.count = <span class="keyword">new</span> AtomicInteger(count);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">await</span><span class="params">()</span></span>&#123; <span class="comment">// 等待计数器归零</span></span><br><span class="line">        waiters.add(Thread.currentThread());</span><br><span class="line">        <span class="keyword">while</span>(<span class="keyword">this</span>.count.get() != <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="comment">// 挂起线程</span></span><br><span class="line">            LockSupport.park(); <span class="comment">// 挂起，等待被唤醒...</span></span><br><span class="line">        &#125;</span><br><span class="line">        waiters.remove(Thread.currentThread());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">countDown</span><span class="params">()</span> </span>&#123; <span class="comment">// 计数器-1</span></span><br><span class="line">        <span class="keyword">if</span> (count.decrementAndGet() == <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="comment">// 释放锁之后，要唤醒线程</span></span><br><span class="line">            <span class="keyword">for</span> (Thread waiter : waiters) &#123;</span><br><span class="line">                LockSupport.unpark(waiter);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        MyCDL cdl = <span class="keyword">new</span> MyCDL(<span class="number">2000</span>); <span class="comment">//2000个参与的线程</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">2000</span>; i++) &#123;</span><br><span class="line">            <span class="keyword">int</span> finalI = i;</span><br><span class="line">            <span class="keyword">new</span> Thread(() -&gt; &#123;</span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    cdl.countDown(); <span class="comment">// -1</span></span><br><span class="line">                    System.out.println(<span class="string">&quot;线程&quot;</span> + finalI + <span class="string">&quot;就绪&quot;</span>);</span><br><span class="line">                    cdl.await();<span class="comment">// 等待计数器归0,如果计数器不归0 则等待</span></span><br><span class="line"></span><br><span class="line">                    <span class="comment">// TODO 并发执行这段代码</span></span><br><span class="line">                    System.out.println(Thread.currentThread() + <span class="string">&quot;运行了&quot;</span>);</span><br><span class="line">                &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">                    e.printStackTrace();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;).start();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="手写一个Semaphore"><a href="#手写一个Semaphore" class="headerlink" title="手写一个Semaphore"></a>手写一个Semaphore</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.wyj.jvm.semaphore;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.LinkedBlockingQueue;</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.atomic.AtomicInteger;</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.locks.LockSupport;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 自定义的信号量实现</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MySemaphore</span> </span>&#123;</span><br><span class="line">    AtomicInteger count = <span class="keyword">null</span>;</span><br><span class="line">    <span class="comment">// 需要锁池</span></span><br><span class="line">    LinkedBlockingQueue&lt;Thread&gt; waiters = <span class="keyword">new</span> LinkedBlockingQueue&lt;&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">MySemaphore</span><span class="params">(<span class="keyword">int</span> num)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.count = <span class="keyword">new</span> AtomicInteger(num); <span class="comment">// 令牌数量 数值</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">acquire</span><span class="params">()</span> </span>&#123; <span class="comment">// 获取令牌,没有令牌就等待</span></span><br><span class="line">        <span class="comment">// 进入等待列表</span></span><br><span class="line">        waiters.add(Thread.currentThread());</span><br><span class="line">        <span class="keyword">for</span> (; ; ) &#123;</span><br><span class="line">            <span class="keyword">int</span> current = count.get();</span><br><span class="line">            <span class="keyword">int</span> n = current - <span class="number">1</span>; <span class="comment">// 发出一个令牌</span></span><br><span class="line">            <span class="keyword">if</span> (current &lt;= <span class="number">0</span> || n &lt; <span class="number">0</span>) &#123;</span><br><span class="line">                <span class="comment">// 挂起线程</span></span><br><span class="line">                LockSupport.park();</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (count.compareAndSet(current, n)) &#123;</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        waiters.remove(Thread.currentThread());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">release</span><span class="params">()</span> </span>&#123; <span class="comment">// 释放令牌 -- 令牌数量+1</span></span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">this</span>.count.incrementAndGet() &gt; <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="comment">// 释放锁之后，要唤醒下一个等待的线程</span></span><br><span class="line">            Thread next = waiters.poll();</span><br><span class="line">            waiters.peek();</span><br><span class="line">            LockSupport.unpark(next);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="同步锁的本质———-排队"><a href="#同步锁的本质———-排队" class="headerlink" title="同步锁的本质——— 排队"></a>同步锁的本质——— 排队</h4><p>同步的方式：独享锁— 单个队列窗口（如lock），共享锁— 多个队列窗口（如CountDownLatch）</p>
+<p>抢锁的方式：插队抢（不公平锁）、先来后到抢锁（公平锁）</p>
+<p>没抢到锁的处理方式：快速尝试多次（CAS自旋锁）、阻塞等待</p>
+<p>唤醒阻塞线程的方式（叫号器）：全部通知、通知下一个</p>
+<h5 id="jdk将上面的各种同步器通过模板方法模式，抽象为AbstractQueuedSynchronizer类，简称AQS（抽象队列同步器）。"><a href="#jdk将上面的各种同步器通过模板方法模式，抽象为AbstractQueuedSynchronizer类，简称AQS（抽象队列同步器）。" class="headerlink" title="jdk将上面的各种同步器通过模板方法模式，抽象为AbstractQueuedSynchronizer类，简称AQS（抽象队列同步器）。"></a>jdk将上面的各种同步器通过模板方法模式，抽象为AbstractQueuedSynchronizer类，简称AQS（抽象队列同步器）。</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.wyj.jvm;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.Iterator;</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.LinkedBlockingQueue;</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.atomic.AtomicInteger;</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.atomic.AtomicReference;</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.locks.LockSupport;</span><br><span class="line"></span><br><span class="line"><span class="comment">/** 自己写的AQS */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AQSdemo</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 同步资源状态</span></span><br><span class="line">    <span class="keyword">volatile</span> AtomicInteger state = <span class="keyword">new</span> AtomicInteger(<span class="number">0</span>);</span><br><span class="line">    <span class="comment">// 当前锁的拥有者</span></span><br><span class="line">    <span class="keyword">protected</span> <span class="keyword">volatile</span> AtomicReference&lt;Thread&gt; owner = <span class="keyword">new</span> AtomicReference&lt;&gt;();</span><br><span class="line">    <span class="comment">// java q 线程安全</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">volatile</span> LinkedBlockingQueue&lt;Thread&gt; waiters = <span class="keyword">new</span> LinkedBlockingQueue&lt;&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 独占</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">acquire</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 塞到等待锁的集合中</span></span><br><span class="line">        waiters.offer(Thread.currentThread());</span><br><span class="line">        <span class="keyword">while</span> (!tryAcquire()) &#123;</span><br><span class="line">            <span class="comment">// 挂起这个线程</span></span><br><span class="line">            LockSupport.park();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 后续，等待其他线程释放锁，收到通知之后继续循环</span></span><br><span class="line">        waiters.remove(Thread.currentThread());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">release</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// cas 修改 owner 拥有者</span></span><br><span class="line">        <span class="keyword">if</span> (tryRelease()) &#123;</span><br><span class="line">            Thread waiter = waiters.peek();</span><br><span class="line">            LockSupport.unpark(waiter); <span class="comment">// 唤醒线程继续 抢锁</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">		<span class="comment">// 由实现类自己去实现获取的条件</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">tryAcquire</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> UnsupportedOperationException();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">tryRelease</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> UnsupportedOperationException();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 共享资源获取</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">acquireShared</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 塞到等待锁的集合中</span></span><br><span class="line">        waiters.offer(Thread.currentThread());</span><br><span class="line">        <span class="keyword">while</span> (tryAcquireShared() &lt; <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="comment">// 挂起这个线程</span></span><br><span class="line">            LockSupport.park();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 后续，等待其他线程释放锁，收到通知之后继续循环</span></span><br><span class="line">        waiters.remove(Thread.currentThread());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 共享资源的释放</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">releaseShared</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// cas 修改 owner 拥有者</span></span><br><span class="line">        <span class="keyword">if</span> (tryReleaseShared()) &#123;</span><br><span class="line">            Thread waiter = waiters.peek();</span><br><span class="line">            LockSupport.unpark(waiter); <span class="comment">// 唤醒线程继续 抢锁</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">tryAcquireShared</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> UnsupportedOperationException();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">tryReleaseShared</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> UnsupportedOperationException();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> AtomicInteger <span class="title">getState</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> state;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setState</span><span class="params">(AtomicInteger state)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.state = state;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="基于自己写的AQS实现上面的demp-MyCDL"><a href="#基于自己写的AQS实现上面的demp-MyCDL" class="headerlink" title="基于自己写的AQS实现上面的demp MyCDL"></a>基于自己写的AQS实现上面的demp MyCDL</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.wyj.jvm.cdl;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.wyj.jvm.AQSdemo;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.CountDownLatch;</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.atomic.AtomicInteger;</span><br><span class="line"></span><br><span class="line"><span class="comment">// CountDownLatch 自己实现</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CDLdemo</span> </span>&#123;</span><br><span class="line">    <span class="comment">// Object  AQS = new Oject(state, queue);</span></span><br><span class="line">    <span class="comment">// AQS 具体实现对象（state、queue、owner）</span></span><br><span class="line">    AQSdemo aqSdemo = <span class="keyword">new</span> AQSdemo() &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">tryAcquireShared</span><span class="params">()</span> </span>&#123; <span class="comment">// 如果非等于0，代表当前还有线程没准备就绪，则认为需要等待</span></span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">this</span>.getState().get() == <span class="number">0</span> ? <span class="number">1</span> : -<span class="number">1</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">tryReleaseShared</span><span class="params">()</span> </span>&#123; <span class="comment">// 如果非等于0，代表当前还有线程没准备就绪，则不会通知继续执行</span></span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">this</span>.getState().decrementAndGet() == <span class="number">0</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">CDLdemo</span><span class="params">(<span class="keyword">int</span> count)</span> </span>&#123;</span><br><span class="line">        aqSdemo.setState(<span class="keyword">new</span> AtomicInteger(count));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">await</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        aqSdemo.acquireShared();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">countDown</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        aqSdemo.releaseShared();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> InterruptedException </span>&#123;</span><br><span class="line">        <span class="comment">// 一个请求，后台需要调用多个接口 查询数据</span></span><br><span class="line">        CDLdemo cdLdemo = <span class="keyword">new</span> CDLdemo(<span class="number">10</span>); <span class="comment">// 创建，计数数值</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">10</span>; i++) &#123; <span class="comment">// 启动九个线程，最后一个两秒后启动</span></span><br><span class="line">            <span class="keyword">int</span> finalI = i;</span><br><span class="line">            <span class="keyword">new</span> Thread(() -&gt; &#123;</span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    Thread.sleep(<span class="number">2000L</span>);</span><br><span class="line">                &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">                    e.printStackTrace();</span><br><span class="line">                &#125;</span><br><span class="line">                System.out.println(<span class="string">&quot;我是&quot;</span> + Thread.currentThread() + <span class="string">&quot;.我执行接口-&quot;</span> + finalI +<span class="string">&quot;调用了&quot;</span>);</span><br><span class="line">                cdLdemo.countDown(); <span class="comment">// 参与计数</span></span><br><span class="line">                <span class="comment">// 不影响后续操作</span></span><br><span class="line">            &#125;).start();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        cdLdemo.await(); <span class="comment">// 等待计数器为0</span></span><br><span class="line">        System.out.println(<span class="string">&quot;全部执行完毕.我来召唤神龙&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="基于自己写的AQS实现上面的demp-MySemaphore"><a href="#基于自己写的AQS实现上面的demp-MySemaphore" class="headerlink" title="基于自己写的AQS实现上面的demp MySemaphore"></a>基于自己写的AQS实现上面的demp MySemaphore</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.wyj.jvm.semaphore;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.wyj.jvm.AQSdemo;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 自定义的信号量实现</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SemaphoreByAQS</span> </span>&#123;</span><br><span class="line">    AQSdemo aqs = <span class="keyword">new</span> AQSdemo() &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">tryAcquireShared</span><span class="params">()</span> </span>&#123; <span class="comment">// 信号量获取， 数量 - 1</span></span><br><span class="line">            <span class="keyword">for</span>(;;) &#123;</span><br><span class="line">                <span class="keyword">int</span> count =  getState().get();</span><br><span class="line">                <span class="keyword">int</span> n = count - <span class="number">1</span>;</span><br><span class="line">                <span class="keyword">if</span>(count &lt;= <span class="number">0</span> || n &lt; <span class="number">0</span>) &#123;</span><br><span class="line">                    <span class="keyword">return</span> -<span class="number">1</span>;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">if</span>(getState().compareAndSet(count, n)) &#123;</span><br><span class="line">                    <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">tryReleaseShared</span><span class="params">()</span> </span>&#123; <span class="comment">// state + 1</span></span><br><span class="line">            <span class="keyword">return</span> getState().incrementAndGet() &gt;= <span class="number">0</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/** 许可数量 */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">SemaphoreByAQS</span><span class="params">(<span class="keyword">int</span> count)</span> </span>&#123;</span><br><span class="line">        aqs.getState().set(count); <span class="comment">// 设置资源的状态</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">acquire</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        aqs.acquireShared();</span><br><span class="line">    &#125; <span class="comment">// 获取令牌</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">release</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        aqs.releaseShared();</span><br><span class="line">    &#125; <span class="comment">// 释放令牌</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="JDK中的AQS抽象队列同步器"><a href="#JDK中的AQS抽象队列同步器" class="headerlink" title="JDK中的AQS抽象队列同步器"></a>JDK中的AQS抽象队列同步器</h3><p><img src="AQS%E6%8A%BD%E8%B1%A1%E9%98%9F%E5%88%97%E5%90%8C%E6%AD%A5%E5%99%A8%E8%AF%A6%E8%A7%A3%E5%8F%8A%E5%B7%A5%E5%85%B7%E7%B1%BB%E6%8B%93%E5%B1%95/1562128290871.jpg"></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/%E5%B9%B6%E5%8F%91/" rel="tag"># 并发</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/06/30/JAVA%E9%94%81%E7%9B%B8%E5%85%B3%E6%9C%AF%E8%AF%AD%E5%8F%8A%E5%90%8C%E6%AD%A5%E5%85%B3%E9%94%AE%E5%AD%97synchronized%E8%AF%A6%E8%A7%A3/" rel="next" title="JAVA锁相关术语及同步关键字synchronized详解">
+                <i class="fa fa-chevron-left"></i> JAVA锁相关术语及同步关键字synchronized详解
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/07/22/%E5%B9%B6%E5%8F%91%E5%AE%B9%E5%99%A8%E7%B1%BBlist-set-queue/" rel="prev" title="并发容器类list_set_queue">
+                并发容器类list_set_queue <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/cat.jpg"
+                alt="" />
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/%20%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">66</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">16</span>
+                  <span class="site-state-item-name">标签</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/yestermorrow" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#AQS%E6%8A%BD%E8%B1%A1%E9%98%9F%E5%88%97%E5%90%8C%E6%AD%A5%E5%99%A8%E8%AF%A6%E8%A7%A3%E5%8F%8A%E5%B7%A5%E5%85%B7%E7%B1%BB%E6%8B%93%E5%B1%95"><span class="nav-number">1.</span> <span class="nav-text">AQS抽象队列同步器详解及工具类拓展</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BF%A1%E5%8F%B7%E9%87%8F%E5%92%8C%E6%A0%85%E6%A0%8F%E5%92%8C%E5%80%92%E8%AE%A1%E6%95%B0%E5%99%A8"><span class="nav-number">1.1.</span> <span class="nav-text">信号量和栅栏和倒计数器</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#CountDownLatch"><span class="nav-number">1.1.0.1.</span> <span class="nav-text">CountDownLatch</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF%E5%AE%9E%E4%BE%8B%EF%BC%9A"><span class="nav-number">1.1.0.1.1.</span> <span class="nav-text">使用场景实例：</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#demo"><span class="nav-number">1.1.0.1.2.</span> <span class="nav-text">demo</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#CyclicBarrier"><span class="nav-number">1.1.0.2.</span> <span class="nav-text">CyclicBarrier</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%85%B8%E5%9E%8B%E5%9C%BA%E6%99%AF%EF%BC%9A"><span class="nav-number">1.1.0.2.1.</span> <span class="nav-text">典型场景：</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#demo-1"><span class="nav-number">1.1.0.2.2.</span> <span class="nav-text">demo</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Semaphore"><span class="nav-number">1.1.0.3.</span> <span class="nav-text">Semaphore</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%85%B8%E5%9E%8B%E5%9C%BA%E6%99%AF"><span class="nav-number">1.1.0.3.1.</span> <span class="nav-text">典型场景</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#demo-2"><span class="nav-number">1.1.0.3.2.</span> <span class="nav-text">demo</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%87%AA%E5%B7%B1%E6%89%8B%E5%86%99%E4%B8%80%E4%B8%AACountDownLatch"><span class="nav-number">1.1.0.4.</span> <span class="nav-text">自己手写一个CountDownLatch</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%89%8B%E5%86%99%E4%B8%80%E4%B8%AASemaphore"><span class="nav-number">1.1.0.5.</span> <span class="nav-text">手写一个Semaphore</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%90%8C%E6%AD%A5%E9%94%81%E7%9A%84%E6%9C%AC%E8%B4%A8%E2%80%94%E2%80%94%E2%80%94-%E6%8E%92%E9%98%9F"><span class="nav-number">1.1.0.6.</span> <span class="nav-text">同步锁的本质——— 排队</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#jdk%E5%B0%86%E4%B8%8A%E9%9D%A2%E7%9A%84%E5%90%84%E7%A7%8D%E5%90%8C%E6%AD%A5%E5%99%A8%E9%80%9A%E8%BF%87%E6%A8%A1%E6%9D%BF%E6%96%B9%E6%B3%95%E6%A8%A1%E5%BC%8F%EF%BC%8C%E6%8A%BD%E8%B1%A1%E4%B8%BAAbstractQueuedSynchronizer%E7%B1%BB%EF%BC%8C%E7%AE%80%E7%A7%B0AQS%EF%BC%88%E6%8A%BD%E8%B1%A1%E9%98%9F%E5%88%97%E5%90%8C%E6%AD%A5%E5%99%A8%EF%BC%89%E3%80%82"><span class="nav-number">1.1.0.6.1.</span> <span class="nav-text">jdk将上面的各种同步器通过模板方法模式，抽象为AbstractQueuedSynchronizer类，简称AQS（抽象队列同步器）。</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%9F%BA%E4%BA%8E%E8%87%AA%E5%B7%B1%E5%86%99%E7%9A%84AQS%E5%AE%9E%E7%8E%B0%E4%B8%8A%E9%9D%A2%E7%9A%84demp-MyCDL"><span class="nav-number">1.1.0.6.2.</span> <span class="nav-text">基于自己写的AQS实现上面的demp MyCDL</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%9F%BA%E4%BA%8E%E8%87%AA%E5%B7%B1%E5%86%99%E7%9A%84AQS%E5%AE%9E%E7%8E%B0%E4%B8%8A%E9%9D%A2%E7%9A%84demp-MySemaphore"><span class="nav-number">1.1.0.6.3.</span> <span class="nav-text">基于自己写的AQS实现上面的demp MySemaphore</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#JDK%E4%B8%AD%E7%9A%84AQS%E6%8A%BD%E8%B1%A1%E9%98%9F%E5%88%97%E5%90%8C%E6%AD%A5%E5%99%A8"><span class="nav-number">1.1.1.</span> <span class="nav-text">JDK中的AQS抽象队列同步器</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">yestermorrow</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

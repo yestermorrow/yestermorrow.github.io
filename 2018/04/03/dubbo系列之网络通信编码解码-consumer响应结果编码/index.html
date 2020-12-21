@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="dubbo," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="dubbo系列之网络通信编码解码-consumer响应结果编码简要在收到provider返回的编码数据后，consumer要进行解码，这时候可能会出现粘包和拆包的问题。 源码解析NettyCodecAdapter.InternalDecoder类messageReceived()分两个部分 1234567891011121314151617181920&#x2F;&#x2F;首先判断当前decoder对象的buffe">
+<meta property="og:type" content="article">
+<meta property="og:title" content="dubbo系列之网络通信编码解码-consumer响应结果编码">
+<meta property="og:url" content="http://yoursite.com/2018/04/03/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1%E7%BC%96%E7%A0%81%E8%A7%A3%E7%A0%81-consumer%E5%93%8D%E5%BA%94%E7%BB%93%E6%9E%9C%E7%BC%96%E7%A0%81/index.html">
+<meta property="og:site_name" content="Yestermorrow">
+<meta property="og:description" content="dubbo系列之网络通信编码解码-consumer响应结果编码简要在收到provider返回的编码数据后，consumer要进行解码，这时候可能会出现粘包和拆包的问题。 源码解析NettyCodecAdapter.InternalDecoder类messageReceived()分两个部分 1234567891011121314151617181920&#x2F;&#x2F;首先判断当前decoder对象的buffe">
+<meta property="og:locale">
+<meta property="article:published_time" content="2018-04-03T12:18:41.000Z">
+<meta property="article:modified_time" content="2018-08-28T13:59:11.000Z">
+<meta property="article:author" content="yestermorrow">
+<meta property="article:tag" content="dubbo">
+<meta name="twitter:card" content="summary">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/04/03/dubbo系列之网络通信编码解码-consumer响应结果编码/"/>
+
+
+
+
+
+  <title>dubbo系列之网络通信编码解码-consumer响应结果编码 | Yestermorrow</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 5.3.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Yestermorrow</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/%20" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/%20" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/04/03/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1%E7%BC%96%E7%A0%81%E8%A7%A3%E7%A0%81-consumer%E5%93%8D%E5%BA%94%E7%BB%93%E6%9E%9C%E7%BC%96%E7%A0%81/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/cat.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Yestermorrow">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">dubbo系列之网络通信编码解码-consumer响应结果编码</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-04-03T20:18:41+08:00">
+                2018-04-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="dubbo系列之网络通信编码解码-consumer响应结果编码"><a href="#dubbo系列之网络通信编码解码-consumer响应结果编码" class="headerlink" title="dubbo系列之网络通信编码解码-consumer响应结果编码"></a>dubbo系列之网络通信编码解码-consumer响应结果编码</h1><h3 id="简要"><a href="#简要" class="headerlink" title="简要"></a>简要</h3><p>在收到provider返回的编码数据后，consumer要进行解码，这时候可能会出现粘包和拆包的问题。</p>
+<h3 id="源码解析"><a href="#源码解析" class="headerlink" title="源码解析"></a>源码解析</h3><h4 id="NettyCodecAdapter-InternalDecoder类"><a href="#NettyCodecAdapter-InternalDecoder类" class="headerlink" title="NettyCodecAdapter.InternalDecoder类"></a>NettyCodecAdapter.InternalDecoder类</h4><h5 id="messageReceived"><a href="#messageReceived" class="headerlink" title="messageReceived()"></a>messageReceived()</h5><p>分两个部分</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//首先判断当前decoder对象的buffer中是否有可以读取的消息，若有，则合并。并将对象赋值给message局部变量</span></span><br><span class="line"><span class="keyword">if</span> (buffer.readable()) &#123;</span><br><span class="line">    <span class="keyword">if</span> (buffer <span class="keyword">instanceof</span> DynamicChannelBuffer) &#123;</span><br><span class="line">        buffer.writeBytes(input.toByteBuffer());</span><br><span class="line">        message = buffer;<span class="comment">//message获取当前channel的inbound消息</span></span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">int</span> size = buffer.readableBytes() + input.readableBytes();</span><br><span class="line">        message = com.alibaba.dubbo.remoting.buffer.ChannelBuffers.dynamicBuffer(</span><br><span class="line">                size &gt; bufferSize ? size : bufferSize);</span><br><span class="line">        message.writeBytes(buffer, buffer.readableBytes());</span><br><span class="line">        message.writeBytes(input.toByteBuffer());</span><br><span class="line">    &#125;</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    message = com.alibaba.dubbo.remoting.buffer.ChannelBuffers.wrappedBuffer(</span><br><span class="line">            input.toByteBuffer());</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">NettyChannel channel = NettyChannel.getOrAddChannel(ctx.getChannel(), url, handler);</span><br><span class="line">Object msg;</span><br><span class="line"><span class="keyword">int</span> saveReaderIndex;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">                <span class="comment">// decode object.</span></span><br><span class="line">                <span class="keyword">do</span> &#123;</span><br><span class="line">                    <span class="comment">//保存当前message的读索引，用于后期消息回滚</span></span><br><span class="line">                    saveReaderIndex = message.readerIndex();</span><br><span class="line">                    <span class="keyword">try</span> &#123;</span><br><span class="line">                        <span class="comment">//DubboCountCodec的decode每次只会解析出一个完整的dubbo协议栈</span></span><br><span class="line">                        msg = codec.decode(channel, message);<span class="comment">//debug</span></span><br><span class="line">                    &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">                        buffer = com.alibaba.dubbo.remoting.buffer.ChannelBuffers.EMPTY_BUFFER;</span><br><span class="line">                        <span class="keyword">throw</span> e;</span><br><span class="line">                    &#125;</span><br><span class="line">                    <span class="keyword">if</span> (msg == Codec2.DecodeResult.NEED_MORE_INPUT) &#123;</span><br><span class="line">                        message.readerIndex(saveReaderIndex);</span><br><span class="line">                        <span class="keyword">break</span>;</span><br><span class="line">                    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                        <span class="keyword">if</span> (saveReaderIndex == message.readerIndex()) &#123;</span><br><span class="line">                            buffer = com.alibaba.dubbo.remoting.buffer.ChannelBuffers.EMPTY_BUFFER;</span><br><span class="line">                            <span class="keyword">throw</span> <span class="keyword">new</span> IOException(<span class="string">&quot;Decode without read data.&quot;</span>);</span><br><span class="line">                        &#125;</span><br><span class="line">                        <span class="keyword">if</span> (msg != <span class="keyword">null</span>) &#123;</span><br><span class="line">                            Channels.fireMessageReceived(ctx, msg, event.getRemoteAddress());</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125; <span class="keyword">while</span> (message.readable());</span><br><span class="line">            &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">                <span class="keyword">if</span> (message.readable()) &#123;</span><br><span class="line">                    message.discardReadBytes();</span><br><span class="line">                    buffer = message;</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    buffer = com.alibaba.dubbo.remoting.buffer.ChannelBuffers.EMPTY_BUFFER;</span><br><span class="line">                &#125;</span><br><span class="line">                NettyChannel.removeChannelIfDisconnected(ctx.getChannel());</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br></pre></td></tr></table></figure>
+<h4 id="DubboCountCodec类"><a href="#DubboCountCodec类" class="headerlink" title="DubboCountCodec类"></a>DubboCountCodec类</h4><h5 id="decode"><a href="#decode" class="headerlink" title="decode()"></a>decode()</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Object <span class="title">decode</span><span class="params">(Channel channel, ChannelBuffer buffer)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> save = buffer.readerIndex();<span class="comment">//保存buffer的读索引</span></span><br><span class="line">        MultiMessage result = MultiMessage.create();</span><br><span class="line">        <span class="keyword">do</span> &#123;</span><br><span class="line">            Object obj = codec.decode(channel, buffer);<span class="comment">//debug</span></span><br><span class="line">            <span class="keyword">if</span> (Codec2.DecodeResult.NEED_MORE_INPUT == obj) &#123;<span class="comment">//数据不足</span></span><br><span class="line">                buffer.readerIndex(save);<span class="comment">//将buffer读索引回滚</span></span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                result.addMessage(obj);</span><br><span class="line">                logMessageLength(obj, buffer.readerIndex() - save);</span><br><span class="line">                save = buffer.readerIndex();<span class="comment">//save更新</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">while</span> (<span class="keyword">true</span>);</span><br><span class="line">        <span class="keyword">if</span> (result.isEmpty()) &#123;</span><br><span class="line">            <span class="keyword">return</span> Codec2.DecodeResult.NEED_MORE_INPUT;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (result.size() == <span class="number">1</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> result.get(<span class="number">0</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> result;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p>这里暂存了当前<code>buffer</code>的读索引，同样也是为了后面的回滚。可以看到当decode返回的是NEED_MORE_INPUT则表示当前的<code>buffer</code>中数据不足，不能完整解析出一个dubbo协议栈，同时将buffer的读索引回滚到之前暂存的索引并且退出循环，将结果返回。</p>
+<p>为什么这里有一个死循环？</p>
+<p>接着往下看</p>
+<h4 id="ExchangeCodec类"><a href="#ExchangeCodec类" class="headerlink" title="ExchangeCodec类"></a>ExchangeCodec类</h4><h5 id="decode-1"><a href="#decode-1" class="headerlink" title="decode()"></a>decode()</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> Object <span class="title">decode</span><span class="params">(Channel channel, ChannelBuffer buffer, <span class="keyword">int</span> readable, <span class="keyword">byte</span>[] header)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">    <span class="comment">// check magic number.</span></span><br><span class="line">    <span class="keyword">if</span> (readable &gt; <span class="number">0</span> &amp;&amp; header[<span class="number">0</span>] != MAGIC_HIGH</span><br><span class="line">            || readable &gt; <span class="number">1</span> &amp;&amp; header[<span class="number">1</span>] != MAGIC_LOW) &#123;</span><br><span class="line">        <span class="keyword">int</span> length = header.length;</span><br><span class="line">        <span class="keyword">if</span> (header.length &lt; readable) &#123;</span><br><span class="line">            header = Bytes.copyOf(header, readable);</span><br><span class="line">            buffer.readBytes(header, length, readable - length);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt; header.length - <span class="number">1</span>; i++) &#123;</span><br><span class="line">            <span class="keyword">if</span> (header[i] == MAGIC_HIGH &amp;&amp; header[i + <span class="number">1</span>] == MAGIC_LOW) &#123;</span><br><span class="line">                buffer.readerIndex(buffer.readerIndex() - header.length + i);</span><br><span class="line">                header = Bytes.copyOf(header, i);</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">super</span>.decode(channel, buffer, readable, header);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// check length.</span></span><br><span class="line">    <span class="comment">//1：当前buffer的可读长度还没有消息头长，说明当前buffer连协议栈的头都不完整，所以需要继续读取inbound数据</span></span><br><span class="line">    <span class="keyword">if</span> (readable &lt; HEADER_LENGTH) &#123;</span><br><span class="line">        <span class="keyword">return</span> DecodeResult.NEED_MORE_INPUT;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// get data length.</span></span><br><span class="line">    <span class="keyword">int</span> len = Bytes.bytes2int(header, <span class="number">12</span>);</span><br><span class="line">    checkPayload(channel, len);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> tt = len + HEADER_LENGTH;</span><br><span class="line">    <span class="comment">//2：当前buffer包含了完整的消息头，便可以得到payload的长度，发现它的可读的长度，并没有包含整个协议栈的数据，所以也需要继续读取inbound数据</span></span><br><span class="line">    <span class="keyword">if</span> (readable &lt; tt) &#123;</span><br><span class="line">        <span class="keyword">return</span> DecodeResult.NEED_MORE_INPUT;<span class="comment">//表示数据不足</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// limit input stream.</span></span><br><span class="line">    <span class="comment">//3：如果上面两个情况都不符合，那么说明当前的buffer至少包含一个dubbo协议栈的数据，那么从当前buffer中读取一个dubbo协议栈的数据，解析出一个dubbo数据，当然这里可能读取完一个dubbo数据之后还会有剩余的数据。</span></span><br><span class="line">    ChannelBufferInputStream is = <span class="keyword">new</span> ChannelBufferInputStream(buffer, len);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> decodeBody(channel, is, header);<span class="comment">//debug</span></span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (is.available() &gt; <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                <span class="keyword">if</span> (logger.isWarnEnabled()) &#123;</span><br><span class="line">                    logger.warn(<span class="string">&quot;Skip input stream &quot;</span> + is.available());</span><br><span class="line">                &#125;</span><br><span class="line">                StreamUtils.skipUnusedStream(is);</span><br><span class="line">            &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">                logger.warn(e.getMessage(), e);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>针对包含一个以上的dubbo协议栈，当然也会解析出其中一个dubbo协议栈，但是经过<code>ExchangeCodec</code>解析之后，<code>message</code>的readIndex不在<code>message</code>尾部，所以<code>message</code>的<code>readable</code>方法返回的是<code>true</code>。那么则会继续遍历<code>message</code>，读取下面的信息。最终要么<code>message</code>刚好整数倍包含完整的dubbo协议栈，要不<code>ExchangeCodec</code>返回<code>NEED_MORE_INPUT</code>,最后将未读完的数据缓存到<code>buffer</code>中,等待下次inbound事件，将<code>buffer</code>中的消息合并到下次的inbound消息中，种类又回到了拆包的问题上。</p>
+<p><strong>##总结</strong></p>
+<p>dubbo在处理tcp的粘包和拆包时是借助<code>InternalDecoder</code>的<code>buffer</code>缓存对象来缓存不完整的dubbo协议栈数据，等待下次inbound事件，合并进去。所以说在dubbo中解决TCP拆包和粘包的时候是通过<code>buffer</code>变量来解决的</p>
+<p>上面的方法就解决了粘包了拆包的问题了</p>
+<p>若出现粘包，就会根据它的请求长度进行截取；</p>
+<p>若出现拆包，数据会不完整，就进入循环重新读取，直到取到完整数据。</p>
+<p>接着往里看看</p>
+<h4 id="DubboCodec类"><a href="#DubboCodec类" class="headerlink" title="DubboCodec类"></a>DubboCodec类</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> Object <span class="title">decodeBody</span><span class="params">(Channel channel, InputStream is, <span class="keyword">byte</span>[] header)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">    <span class="comment">//取第三个字节，代表是双向还是单向</span></span><br><span class="line">    <span class="keyword">byte</span> flag = header[<span class="number">2</span>], proto = (<span class="keyword">byte</span>) (flag &amp; SERIALIZATION_MASK);</span><br><span class="line">    Serialization s = CodecSupport.getSerialization(channel.getUrl(), proto);<span class="comment">//provider发回的序列化ID为2</span></span><br><span class="line">    <span class="comment">// get request id.</span></span><br><span class="line">    <span class="comment">//取第5到第12个字节代表request id</span></span><br><span class="line">    <span class="keyword">long</span> id = Bytes.bytes2long(header, <span class="number">4</span>);</span><br><span class="line">    <span class="keyword">if</span> ((flag &amp; FLAG_REQUEST) == <span class="number">0</span>) &#123;<span class="comment">//单向</span></span><br><span class="line">        <span class="comment">// decode response.</span></span><br><span class="line">        Response res = <span class="keyword">new</span> Response(id);</span><br><span class="line">        <span class="keyword">if</span> ((flag &amp; FLAG_EVENT) != <span class="number">0</span>) &#123;</span><br><span class="line">            res.setEvent(Response.HEARTBEAT_EVENT);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// get status.</span></span><br><span class="line">        <span class="keyword">byte</span> status = header[<span class="number">3</span>];</span><br><span class="line">        res.setStatus(status);</span><br><span class="line">        <span class="keyword">if</span> (status == Response.OK) &#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                Object data;</span><br><span class="line">                <span class="keyword">if</span> (res.isHeartbeat()) &#123;<span class="comment">//是否是心跳</span></span><br><span class="line">                    data = decodeHeartbeatData(channel, deserialize(s, channel.getUrl(), is));</span><br><span class="line">                &#125; <span class="keyword">else</span> <span class="keyword">if</span> (res.isEvent()) &#123;<span class="comment">//是否是事件</span></span><br><span class="line">                    data = decodeEventData(channel, deserialize(s, channel.getUrl(), is));</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    DecodeableRpcResult result;</span><br><span class="line">                    <span class="keyword">if</span> (channel.getUrl().getParameter(</span><br><span class="line">                            Constants.DECODE_IN_IO_THREAD_KEY,</span><br><span class="line">                            Constants.DEFAULT_DECODE_IN_IO_THREAD)) &#123;</span><br><span class="line">                        result = <span class="keyword">new</span> DecodeableRpcResult(channel, res, is,</span><br><span class="line">                                (Invocation) getRequestData(id), proto);</span><br><span class="line">                        result.decode();<span class="comment">//debug</span></span><br><span class="line">                    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                        result = <span class="keyword">new</span> DecodeableRpcResult(channel, res,</span><br><span class="line">                                <span class="keyword">new</span> UnsafeByteArrayInputStream(readMessageData(is)),</span><br><span class="line">                                (Invocation) getRequestData(id), proto);</span><br><span class="line">                    &#125;</span><br><span class="line">                    data = result;</span><br><span class="line">                &#125;</span><br><span class="line">                res.setResult(data);</span><br><span class="line">            &#125; <span class="keyword">catch</span> (Throwable t) &#123;</span><br><span class="line">                <span class="keyword">if</span> (log.isWarnEnabled()) &#123;</span><br><span class="line">                    log.warn(<span class="string">&quot;Decode response failed: &quot;</span> + t.getMessage(), t);</span><br><span class="line">                &#125;</span><br><span class="line">                res.setStatus(Response.CLIENT_ERROR);</span><br><span class="line">                res.setErrorMessage(StringUtils.toString(t));</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            res.setErrorMessage(deserialize(s, channel.getUrl(), is).readUTF());</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> res;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;<span class="comment">//双向</span></span><br><span class="line">      ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="DecodeableRpcResult类"><a href="#DecodeableRpcResult类" class="headerlink" title="DecodeableRpcResult类"></a>DecodeableRpcResult类</h4><h5 id="decode-——根据RESPONSE-NULL-VALUE-RESPONSE-VALUE-RESPONSE-WITH-EXCEPTION进行相应的处理"><a href="#decode-——根据RESPONSE-NULL-VALUE-RESPONSE-VALUE-RESPONSE-WITH-EXCEPTION进行相应的处理" class="headerlink" title="decode()——根据RESPONSE_NULL_VALUE  RESPONSE_VALUE  RESPONSE_WITH_EXCEPTION进行相应的处理"></a>decode()——根据RESPONSE_NULL_VALUE  RESPONSE_VALUE  RESPONSE_WITH_EXCEPTION进行相应的处理</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Object <span class="title">decode</span><span class="params">(Channel channel, InputStream input)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        ObjectInput in = CodecSupport.getSerialization(channel.getUrl(), serializationType)</span><br><span class="line">                .deserialize(channel.getUrl(), input);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">byte</span> flag = in.readByte();</span><br><span class="line">        <span class="keyword">switch</span> (flag) &#123;</span><br><span class="line">            <span class="keyword">case</span> DubboCodec.RESPONSE_NULL_VALUE:<span class="comment">//值为null</span></span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">case</span> DubboCodec.RESPONSE_VALUE:<span class="comment">//有值</span></span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    Type[] returnType = RpcUtils.getReturnTypes(invocation);</span><br><span class="line">                    setValue(returnType == <span class="keyword">null</span> || returnType.length == <span class="number">0</span> ? in.readObject() :</span><br><span class="line">                            (returnType.length == <span class="number">1</span> ? in.readObject((Class&lt;?&gt;) returnType[<span class="number">0</span>])</span><br><span class="line">                                    : in.readObject((Class&lt;?&gt;) returnType[<span class="number">0</span>], returnType[<span class="number">1</span>])));</span><br><span class="line">                &#125; <span class="keyword">catch</span> (ClassNotFoundException e) &#123;</span><br><span class="line">                    <span class="keyword">throw</span> <span class="keyword">new</span> IOException(StringUtils.toString(<span class="string">&quot;Read response data failed.&quot;</span>, e));</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">case</span> DubboCodec.RESPONSE_WITH_EXCEPTION:<span class="comment">//异常</span></span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    Object obj = in.readObject();</span><br><span class="line">                    <span class="keyword">if</span> (obj <span class="keyword">instanceof</span> Throwable == <span class="keyword">false</span>)</span><br><span class="line">                        <span class="keyword">throw</span> <span class="keyword">new</span> IOException(<span class="string">&quot;Response data error, expect Throwable, but get &quot;</span> + obj);</span><br><span class="line">                    setException((Throwable) obj);</span><br><span class="line">                &#125; <span class="keyword">catch</span> (ClassNotFoundException e) &#123;</span><br><span class="line">                    <span class="keyword">throw</span> <span class="keyword">new</span> IOException(StringUtils.toString(<span class="string">&quot;Read response data failed.&quot;</span>, e));</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">default</span>:</span><br><span class="line">                <span class="keyword">throw</span> <span class="keyword">new</span> IOException(<span class="string">&quot;Unknown result flag, expect &#x27;0&#x27; &#x27;1&#x27; &#x27;2&#x27;, get &quot;</span> + flag);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span>;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/dubbo/" rel="tag"># dubbo</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/04/03/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1%E7%BC%96%E7%A0%81%E8%A7%A3%E7%A0%81-provider%E8%AF%B7%E6%B1%82%E5%92%8C%E5%93%8D%E5%BA%94%E7%BC%96%E7%A0%81/" rel="next" title="dubbo系列之网络通信编码解码-provider请求和响应编码">
+                <i class="fa fa-chevron-left"></i> dubbo系列之网络通信编码解码-provider请求和响应编码
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/04/10/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E7%B2%98%E5%8C%85%E5%92%8C%E6%8B%86%E5%8C%85/" rel="prev" title="dubbo系列之粘包和拆包">
+                dubbo系列之粘包和拆包 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/cat.jpg"
+                alt="" />
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/%20%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">66</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">16</span>
+                  <span class="site-state-item-name">标签</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/yestermorrow" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1%E7%BC%96%E7%A0%81%E8%A7%A3%E7%A0%81-consumer%E5%93%8D%E5%BA%94%E7%BB%93%E6%9E%9C%E7%BC%96%E7%A0%81"><span class="nav-number">1.</span> <span class="nav-text">dubbo系列之网络通信编码解码-consumer响应结果编码</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AE%80%E8%A6%81"><span class="nav-number">1.0.1.</span> <span class="nav-text">简要</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90"><span class="nav-number">1.0.2.</span> <span class="nav-text">源码解析</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#NettyCodecAdapter-InternalDecoder%E7%B1%BB"><span class="nav-number">1.0.2.1.</span> <span class="nav-text">NettyCodecAdapter.InternalDecoder类</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#messageReceived"><span class="nav-number">1.0.2.1.1.</span> <span class="nav-text">messageReceived()</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#DubboCountCodec%E7%B1%BB"><span class="nav-number">1.0.2.2.</span> <span class="nav-text">DubboCountCodec类</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#decode"><span class="nav-number">1.0.2.2.1.</span> <span class="nav-text">decode()</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#ExchangeCodec%E7%B1%BB"><span class="nav-number">1.0.2.3.</span> <span class="nav-text">ExchangeCodec类</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#decode-1"><span class="nav-number">1.0.2.3.1.</span> <span class="nav-text">decode()</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#DubboCodec%E7%B1%BB"><span class="nav-number">1.0.2.4.</span> <span class="nav-text">DubboCodec类</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#DecodeableRpcResult%E7%B1%BB"><span class="nav-number">1.0.2.5.</span> <span class="nav-text">DecodeableRpcResult类</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#decode-%E2%80%94%E2%80%94%E6%A0%B9%E6%8D%AERESPONSE-NULL-VALUE-RESPONSE-VALUE-RESPONSE-WITH-EXCEPTION%E8%BF%9B%E8%A1%8C%E7%9B%B8%E5%BA%94%E7%9A%84%E5%A4%84%E7%90%86"><span class="nav-number">1.0.2.5.1.</span> <span class="nav-text">decode()——根据RESPONSE_NULL_VALUE  RESPONSE_VALUE  RESPONSE_WITH_EXCEPTION进行相应的处理</span></a></li></ol></li></ol></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">yestermorrow</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

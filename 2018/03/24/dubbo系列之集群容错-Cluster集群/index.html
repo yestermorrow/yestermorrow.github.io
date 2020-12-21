@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="dubbo," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="dubbo系列之集群容错-Cluster集群简要cluster是用来干什么的？ cluster少Directory中的多个invoker伪装成一个invoker，来容错，调试失败重试。 源码构成Cluster接口123456@SPI(FailoverCluster.NAME)public interface Cluster &amp;#123;    @Adaptive    &lt;T&gt; Invo">
+<meta property="og:type" content="article">
+<meta property="og:title" content="dubbo系列之集群容错-Cluster集群">
+<meta property="og:url" content="http://yoursite.com/2018/03/24/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E9%9B%86%E7%BE%A4%E5%AE%B9%E9%94%99-Cluster%E9%9B%86%E7%BE%A4/index.html">
+<meta property="og:site_name" content="Yestermorrow">
+<meta property="og:description" content="dubbo系列之集群容错-Cluster集群简要cluster是用来干什么的？ cluster少Directory中的多个invoker伪装成一个invoker，来容错，调试失败重试。 源码构成Cluster接口123456@SPI(FailoverCluster.NAME)public interface Cluster &amp;#123;    @Adaptive    &lt;T&gt; Invo">
+<meta property="og:locale">
+<meta property="og:image" content="http://yoursite.com/2018/03/24/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E9%9B%86%E7%BE%A4%E5%AE%B9%E9%94%99-Cluster%E9%9B%86%E7%BE%A4/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E9%9B%86%E7%BE%A4%E5%AE%B9%E9%94%99-Cluster%E9%9B%86%E7%BE%A4/Cluster%E5%AE%9E%E7%8E%B0%E7%B1%BB.png">
+<meta property="article:published_time" content="2018-03-24T04:48:57.000Z">
+<meta property="article:modified_time" content="2018-08-28T13:50:27.000Z">
+<meta property="article:author" content="yestermorrow">
+<meta property="article:tag" content="dubbo">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2018/03/24/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E9%9B%86%E7%BE%A4%E5%AE%B9%E9%94%99-Cluster%E9%9B%86%E7%BE%A4/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E9%9B%86%E7%BE%A4%E5%AE%B9%E9%94%99-Cluster%E9%9B%86%E7%BE%A4/Cluster%E5%AE%9E%E7%8E%B0%E7%B1%BB.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/03/24/dubbo系列之集群容错-Cluster集群/"/>
+
+
+
+
+
+  <title>dubbo系列之集群容错-Cluster集群 | Yestermorrow</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 5.3.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Yestermorrow</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/%20" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/%20" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/03/24/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E9%9B%86%E7%BE%A4%E5%AE%B9%E9%94%99-Cluster%E9%9B%86%E7%BE%A4/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/cat.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Yestermorrow">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">dubbo系列之集群容错-Cluster集群</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-03-24T12:48:57+08:00">
+                2018-03-24
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="dubbo系列之集群容错-Cluster集群"><a href="#dubbo系列之集群容错-Cluster集群" class="headerlink" title="dubbo系列之集群容错-Cluster集群"></a>dubbo系列之集群容错-Cluster集群</h1><h3 id="简要"><a href="#简要" class="headerlink" title="简要"></a>简要</h3><p>cluster是用来干什么的？</p>
+<p>cluster少Directory中的多个invoker伪装成一个invoker，来容错，调试失败重试。</p>
+<h3 id="源码构成"><a href="#源码构成" class="headerlink" title="源码构成"></a>源码构成</h3><h4 id="Cluster接口"><a href="#Cluster接口" class="headerlink" title="Cluster接口"></a>Cluster接口</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@SPI(FailoverCluster.NAME)</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Cluster</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Adaptive</span></span><br><span class="line">    &lt;T&gt; <span class="function">Invoker&lt;T&gt; <span class="title">join</span><span class="params">(Directory&lt;T&gt; directory)</span> <span class="keyword">throws</span> RpcException</span>;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>**@SPI(FailoverCluster.NAME)**代表失败转移，当出现失败的时候，重新重试其他服务器。</p>
+<p>看一下Cluster的继承体系图，共</p>
+<p><img src="dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E9%9B%86%E7%BE%A4%E5%AE%B9%E9%94%99-Cluster%E9%9B%86%E7%BE%A4/Cluster%E5%AE%9E%E7%8E%B0%E7%B1%BB.png" alt="Cluster实现类"></p>
+<p>除MockClusterWrapper外共八个实现类</p>
+<h5 id="FailoverCluster："><a href="#FailoverCluster：" class="headerlink" title="FailoverCluster："></a>FailoverCluster：</h5><p>（默认）失败转移，当出现失败，重试其它服务器，通常用于读操作，但重试会带来更长延迟。 </p>
+<h5 id="FailfastCluster："><a href="#FailfastCluster：" class="headerlink" title="FailfastCluster："></a>FailfastCluster：</h5><p>快速失败，只发起一次调用，失败立即报错，通常用于非幂等性的写操作。</p>
+<h5 id="FailbackCluster："><a href="#FailbackCluster：" class="headerlink" title="FailbackCluster："></a>FailbackCluster：</h5><p>失败自动恢复，后台记录失败请求，定时重发，通常用于消息通知操作。</p>
+<h5 id="FailsafeCluster："><a href="#FailsafeCluster：" class="headerlink" title="FailsafeCluster："></a>FailsafeCluster：</h5><p>失败安全，出现异常时，直接忽略，通常用于写入审计日志等操作。</p>
+<h5 id="ForkingCluster："><a href="#ForkingCluster：" class="headerlink" title="ForkingCluster："></a>ForkingCluster：</h5><p>并行调用，只要一个成功即返回，通常用于实时性要求较高的操作，但需要浪费更多服务资源。</p>
+<h5 id="BroadcastCluster"><a href="#BroadcastCluster" class="headerlink" title="BroadcastCluster:"></a>BroadcastCluster:</h5><p> 广播调用。遍历所有Invokers, 逐个调用每个调用catch住异常不影响其他invoker调用</p>
+<h5 id="MergeableCluster"><a href="#MergeableCluster" class="headerlink" title="MergeableCluster:"></a>MergeableCluster:</h5><p>分组聚合， 按组合并返回结果，比如菜单服务，接口一样，但有多种实现，用group区分，现在消费方需从每种group中调用一次返回结果，合并结果返回，这样就可以实现聚合菜单项。</p>
+<h5 id="AvailableCluster"><a href="#AvailableCluster" class="headerlink" title="AvailableCluster:"></a>AvailableCluster:</h5><p> 获取可用的调用。遍历所有Invokers判断Invoker.isAvalible,只要一个有为true直接调用返回，不管成不成功</p>
+<p>本篇博客重点只讲FailoverCluster和FailfastCluster。</p>
+<h5 id="FailoverClusterInvoker类"><a href="#FailoverClusterInvoker类" class="headerlink" title="FailoverClusterInvoker类"></a>FailoverClusterInvoker类</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 失败转移，当出现失败，重试其它服务器，通常用于读操作，但重试会带来更长延迟。</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">FailoverClusterInvoker</span>&lt;<span class="title">T</span>&gt; <span class="keyword">extends</span> <span class="title">AbstractClusterInvoker</span>&lt;<span class="title">T</span>&gt; </span>&#123;</span><br><span class="line"> 	<span class="comment">// .......</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Result <span class="title">doInvoke</span><span class="params">(Invocation invocation, <span class="keyword">final</span> List&lt;Invoker&lt;T&gt;&gt; invokers, LoadBalance loadbalance)</span> <span class="keyword">throws</span> RpcException </span>&#123;</span><br><span class="line">        List&lt;Invoker&lt;T&gt;&gt; copyinvokers = invokers;</span><br><span class="line">        checkInvokers(copyinvokers, invocation);</span><br><span class="line">        <span class="comment">//len为失败重试次数，默认是3</span></span><br><span class="line">        <span class="keyword">int</span> len = getUrl().getMethodParameter(invocation.getMethodName(), Constants.RETRIES_KEY, Constants.DEFAULT_RETRIES) + <span class="number">1</span>;</span><br><span class="line">        <span class="keyword">if</span> (len &lt;= <span class="number">0</span>) &#123;</span><br><span class="line">            len = <span class="number">1</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// retry loop.</span></span><br><span class="line">        RpcException le = <span class="keyword">null</span>; <span class="comment">// last exception.</span></span><br><span class="line">        <span class="comment">//从负载均衡里面获取一个invoker</span></span><br><span class="line">        List&lt;Invoker&lt;T&gt;&gt; invoked = <span class="keyword">new</span> ArrayList&lt;Invoker&lt;T&gt;&gt;(copyinvokers.size()); <span class="comment">// invoked invokers.</span></span><br><span class="line">        Set&lt;String&gt; providers = <span class="keyword">new</span> HashSet&lt;String&gt;(len);</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; len; i++) &#123;</span><br><span class="line">            <span class="comment">//重试时，进行重新选择，避免重试时invoker列表已发生变化.</span></span><br><span class="line">            <span class="comment">//注意：如果列表发生了变化，那么invoked判断会失效，因为invoker示例已经改变</span></span><br><span class="line">            <span class="keyword">if</span> (i &gt; <span class="number">0</span>) &#123;</span><br><span class="line">                checkWhetherDestroyed();</span><br><span class="line">                copyinvokers = list(invocation);</span><br><span class="line">                <span class="comment">//重新检查一下</span></span><br><span class="line">                checkInvokers(copyinvokers, invocation);</span><br><span class="line">            &#125;</span><br><span class="line">            Invoker&lt;T&gt; invoker = select(loadbalance, invocation, copyinvokers, invoked);</span><br><span class="line">            invoked.add(invoker);</span><br><span class="line">            RpcContext.getContext().setInvokers((List) invoked);</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                Result result = invoker.invoke(invocation);</span><br><span class="line">                <span class="keyword">if</span> (le != <span class="keyword">null</span> &amp;&amp; logger.isWarnEnabled()) &#123;</span><br><span class="line">                    logger.warn(<span class="string">&quot;Although retry the method &quot;</span> + invocation.getMethodName()</span><br><span class="line">                            + <span class="string">&quot; in the service &quot;</span> + getInterface().getName()</span><br><span class="line">                            + <span class="string">&quot; was successful by the provider &quot;</span> + invoker.getUrl().getAddress()</span><br><span class="line">                            + <span class="string">&quot;, but there have been failed providers &quot;</span> + providers</span><br><span class="line">                            + <span class="string">&quot; (&quot;</span> + providers.size() + <span class="string">&quot;/&quot;</span> + copyinvokers.size()</span><br><span class="line">                            + <span class="string">&quot;) from the registry &quot;</span> + directory.getUrl().getAddress()</span><br><span class="line">                            + <span class="string">&quot; on the consumer &quot;</span> + NetUtils.getLocalHost()</span><br><span class="line">                            + <span class="string">&quot; using the dubbo version &quot;</span> + Version.getVersion() + <span class="string">&quot;. Last error is: &quot;</span></span><br><span class="line">                            + le.getMessage(), le);</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">return</span> result;</span><br><span class="line">            &#125; <span class="keyword">catch</span> (RpcException e) &#123;</span><br><span class="line">                <span class="keyword">if</span> (e.isBiz()) &#123; <span class="comment">// biz exception.</span></span><br><span class="line">                    <span class="keyword">throw</span> e;</span><br><span class="line">                &#125;</span><br><span class="line">                le = e;</span><br><span class="line">            &#125; <span class="keyword">catch</span> (Throwable e) &#123;</span><br><span class="line">                le = <span class="keyword">new</span> RpcException(e.getMessage(), e);</span><br><span class="line">            &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">                providers.add(invoker.getUrl().getAddress());</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> RpcException(le != <span class="keyword">null</span> ? le.getCode() : <span class="number">0</span>, <span class="string">&quot;Failed to invoke the method &quot;</span></span><br><span class="line">                + invocation.getMethodName() + <span class="string">&quot; in the service &quot;</span> + getInterface().getName()</span><br><span class="line">                + <span class="string">&quot;. Tried &quot;</span> + len + <span class="string">&quot; times of the providers &quot;</span> + providers</span><br><span class="line">                + <span class="string">&quot; (&quot;</span> + providers.size() + <span class="string">&quot;/&quot;</span> + copyinvokers.size()</span><br><span class="line">                + <span class="string">&quot;) from the registry &quot;</span> + directory.getUrl().getAddress()</span><br><span class="line">                + <span class="string">&quot; on the consumer &quot;</span> + NetUtils.getLocalHost() + <span class="string">&quot; using the dubbo version &quot;</span></span><br><span class="line">                + Version.getVersion() + <span class="string">&quot;. Last error is: &quot;</span></span><br><span class="line">                + (le != <span class="keyword">null</span> ? le.getMessage() : <span class="string">&quot;&quot;</span>), le != <span class="keyword">null</span> &amp;&amp; le.getCause() != <span class="keyword">null</span> ? le.getCause() : le);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="FailfastClusterInvoker类"><a href="#FailfastClusterInvoker类" class="headerlink" title="FailfastClusterInvoker类"></a>FailfastClusterInvoker类</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">**</span><br><span class="line"> * 快速失败，只发起一次调用，失败立即报错，通常用于非幂等性的写操作。</span><br><span class="line"> */</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">FailfastClusterInvoker</span>&lt;<span class="title">T</span>&gt; <span class="keyword">extends</span> <span class="title">AbstractClusterInvoker</span>&lt;<span class="title">T</span>&gt; </span>&#123;</span><br><span class="line">	<span class="comment">// ......</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Result <span class="title">doInvoke</span><span class="params">(Invocation invocation, List&lt;Invoker&lt;T&gt;&gt; invokers, LoadBalance loadbalance)</span> <span class="keyword">throws</span> RpcException </span>&#123;</span><br><span class="line">        checkInvokers(invokers, invocation);</span><br><span class="line">        Invoker&lt;T&gt; invoker = select(loadbalance, invocation, invokers, <span class="keyword">null</span>);</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> invoker.invoke(invocation);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Throwable e) &#123;</span><br><span class="line">            <span class="keyword">if</span> (e <span class="keyword">instanceof</span> RpcException &amp;&amp; ((RpcException) e).isBiz()) &#123; <span class="comment">// biz exception.</span></span><br><span class="line">                <span class="keyword">throw</span> (RpcException) e;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> RpcException(e <span class="keyword">instanceof</span> RpcException ? ((RpcException) e).getCode() : <span class="number">0</span>, <span class="string">&quot;Failfast invoke providers &quot;</span> + invoker.getUrl() + <span class="string">&quot; &quot;</span> + loadbalance.getClass().getSimpleName() + <span class="string">&quot; select from all providers &quot;</span> + invokers + <span class="string">&quot; for service &quot;</span> + getInterface().getName() + <span class="string">&quot; method &quot;</span> + invocation.getMethodName() + <span class="string">&quot; on consumer &quot;</span> + NetUtils.getLocalHost() + <span class="string">&quot; use dubbo version &quot;</span> + Version.getVersion() + <span class="string">&quot;, but no luck to perform the invocation. Last error is: &quot;</span> + e.getMessage(), e.getCause() != <span class="keyword">null</span> ? e.getCause() : e);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>看代码我们知道FailoverClusterInvoker（失败转移）里面有个for循环，当有异常的时候，是没有直接抛出去的，而是做了异常存储，默认重试三次。而FailfastClusterInvoker（快速失败）有异常就直接抛出来了，失败就立即报错，不会再去重试了。</p>
+<h6 id="应用场景"><a href="#应用场景" class="headerlink" title="应用场景"></a>应用场景</h6><p>**dubbo中”读接口”和”写接口”有什么区别?**答案也是很明显的,因为默认<code>FailoverCluster</code>会重试,如果是”写”类型的接口,如果在网络抖动情况下写入多个值,所以”写”类型的接口要换成<code>FailfastCluster</code>。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/dubbo/" rel="tag"># dubbo</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/03/24/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E9%9B%86%E7%BE%A4%E5%AE%B9%E9%94%99-router%E8%B7%AF%E7%94%B1%E8%A7%84%E5%88%99/" rel="next" title="dubbo系列之集群容错-router路由规则">
+                <i class="fa fa-chevron-left"></i> dubbo系列之集群容错-router路由规则
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/03/24/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E9%9B%86%E7%BE%A4%E5%AE%B9%E9%94%99-loadbalance%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1/" rel="prev" title="dubbo系列之集群容错-loadbalance负载均衡">
+                dubbo系列之集群容错-loadbalance负载均衡 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/cat.jpg"
+                alt="" />
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/%20%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">66</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">16</span>
+                  <span class="site-state-item-name">标签</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/yestermorrow" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E9%9B%86%E7%BE%A4%E5%AE%B9%E9%94%99-Cluster%E9%9B%86%E7%BE%A4"><span class="nav-number">1.</span> <span class="nav-text">dubbo系列之集群容错-Cluster集群</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AE%80%E8%A6%81"><span class="nav-number">1.0.1.</span> <span class="nav-text">简要</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BA%90%E7%A0%81%E6%9E%84%E6%88%90"><span class="nav-number">1.0.2.</span> <span class="nav-text">源码构成</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Cluster%E6%8E%A5%E5%8F%A3"><span class="nav-number">1.0.2.1.</span> <span class="nav-text">Cluster接口</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#FailoverCluster%EF%BC%9A"><span class="nav-number">1.0.2.1.1.</span> <span class="nav-text">FailoverCluster：</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#FailfastCluster%EF%BC%9A"><span class="nav-number">1.0.2.1.2.</span> <span class="nav-text">FailfastCluster：</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#FailbackCluster%EF%BC%9A"><span class="nav-number">1.0.2.1.3.</span> <span class="nav-text">FailbackCluster：</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#FailsafeCluster%EF%BC%9A"><span class="nav-number">1.0.2.1.4.</span> <span class="nav-text">FailsafeCluster：</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#ForkingCluster%EF%BC%9A"><span class="nav-number">1.0.2.1.5.</span> <span class="nav-text">ForkingCluster：</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#BroadcastCluster"><span class="nav-number">1.0.2.1.6.</span> <span class="nav-text">BroadcastCluster:</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#MergeableCluster"><span class="nav-number">1.0.2.1.7.</span> <span class="nav-text">MergeableCluster:</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#AvailableCluster"><span class="nav-number">1.0.2.1.8.</span> <span class="nav-text">AvailableCluster:</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#FailoverClusterInvoker%E7%B1%BB"><span class="nav-number">1.0.2.1.9.</span> <span class="nav-text">FailoverClusterInvoker类</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#FailfastClusterInvoker%E7%B1%BB"><span class="nav-number">1.0.2.1.10.</span> <span class="nav-text">FailfastClusterInvoker类</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="nav-number">1.0.2.1.10.1.</span> <span class="nav-text">应用场景</span></a></li></ol></li></ol></li></ol></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">yestermorrow</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

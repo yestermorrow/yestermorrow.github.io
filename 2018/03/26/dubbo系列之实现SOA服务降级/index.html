@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="dubbo," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="dubbo系列之实现SOA服务降级简介什么是服务开关？先讲一下开关的由来，例如淘宝在11月11日做促销活动，在交易下单环节，可能需要调用A、B、C三个接口来完成，但是其实A和B是必须的，  C只是附加的功能（例如在下单的时候做一下推荐，或push消息），可有可无，在平时系统没有压力，容量充足的情况下，调用下没问题，但是在类似店庆之类的大促环节， 系统已经满负荷了，这时候其实完全可以不去调用C接口，">
+<meta property="og:type" content="article">
+<meta property="og:title" content="dubbo系列之实现SOA服务降级">
+<meta property="og:url" content="http://yoursite.com/2018/03/26/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E5%AE%9E%E7%8E%B0SOA%E6%9C%8D%E5%8A%A1%E9%99%8D%E7%BA%A7/index.html">
+<meta property="og:site_name" content="Yestermorrow">
+<meta property="og:description" content="dubbo系列之实现SOA服务降级简介什么是服务开关？先讲一下开关的由来，例如淘宝在11月11日做促销活动，在交易下单环节，可能需要调用A、B、C三个接口来完成，但是其实A和B是必须的，  C只是附加的功能（例如在下单的时候做一下推荐，或push消息），可有可无，在平时系统没有压力，容量充足的情况下，调用下没问题，但是在类似店庆之类的大促环节， 系统已经满负荷了，这时候其实完全可以不去调用C接口，">
+<meta property="og:locale">
+<meta property="og:image" content="http://yoursite.com/2018/03/26/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E5%AE%9E%E7%8E%B0SOA%E6%9C%8D%E5%8A%A1%E9%99%8D%E7%BA%A7/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E5%AE%9E%E7%8E%B0SOA%E6%9C%8D%E5%8A%A1%E9%99%8D%E7%BA%A7/1.png">
+<meta property="og:image" content="http://yoursite.com/2018/03/26/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E5%AE%9E%E7%8E%B0SOA%E6%9C%8D%E5%8A%A1%E9%99%8D%E7%BA%A7/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E5%AE%9E%E7%8E%B0SOA%E6%9C%8D%E5%8A%A1%E9%99%8D%E7%BA%A7/2.png">
+<meta property="og:image" content="http://yoursite.com/2018/03/26/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E5%AE%9E%E7%8E%B0SOA%E6%9C%8D%E5%8A%A1%E9%99%8D%E7%BA%A7/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E5%AE%9E%E7%8E%B0SOA%E6%9C%8D%E5%8A%A1%E9%99%8D%E7%BA%A7/3.png">
+<meta property="article:published_time" content="2018-03-26T07:31:33.000Z">
+<meta property="article:modified_time" content="2018-08-28T13:53:43.000Z">
+<meta property="article:author" content="yestermorrow">
+<meta property="article:tag" content="dubbo">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2018/03/26/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E5%AE%9E%E7%8E%B0SOA%E6%9C%8D%E5%8A%A1%E9%99%8D%E7%BA%A7/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E5%AE%9E%E7%8E%B0SOA%E6%9C%8D%E5%8A%A1%E9%99%8D%E7%BA%A7/1.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/03/26/dubbo系列之实现SOA服务降级/"/>
+
+
+
+
+
+  <title>dubbo系列之实现SOA服务降级 | Yestermorrow</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 5.3.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Yestermorrow</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/%20" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/%20" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/03/26/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E5%AE%9E%E7%8E%B0SOA%E6%9C%8D%E5%8A%A1%E9%99%8D%E7%BA%A7/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/cat.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Yestermorrow">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">dubbo系列之实现SOA服务降级</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-03-26T15:31:33+08:00">
+                2018-03-26
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="dubbo系列之实现SOA服务降级"><a href="#dubbo系列之实现SOA服务降级" class="headerlink" title="dubbo系列之实现SOA服务降级"></a>dubbo系列之实现SOA服务降级</h1><h3 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h3><h5 id="什么是服务开关？"><a href="#什么是服务开关？" class="headerlink" title="什么是服务开关？"></a>什么是服务开关？</h5><p>先讲一下开关的由来，例如淘宝在11月11日做促销活动，在交易下单环节，可能需要调用A、B、C三个接口来完成，但是其实A和B是必须的，  C只是附加的功能（例如在下单的时候做一下推荐，或push消息），可有可无，在平时系统没有压力，容量充足的情况下，调用下没问题，但是在类似店庆之类的大促环节， 系统已经满负荷了，这时候其实完全可以不去调用C接口，怎么实现这个呢？  改代码？最好是设置一个开关，在大促环节就把开关关掉就可以了。</p>
+<h5 id="什么是服务降级？"><a href="#什么是服务降级？" class="headerlink" title="什么是服务降级？"></a>什么是服务降级？</h5><p>服务降级，当服务器压力剧增的情况下，根据当前业务情况及流量对一些服务和页面有策略的降级，以此释放服务器资源以保证核心任务的正常运行。</p>
+<h5 id="dubbo如何实现服务降级？"><a href="#dubbo如何实现服务降级？" class="headerlink" title="dubbo如何实现服务降级？"></a>dubbo如何实现服务降级？</h5><p><strong>容错：</strong>当系统出现非业务异常(比如并发数太高导致超时，网络异常等)时，不对该接口进行处理。（不可知）       mock=fail:return null</p>
+<p><strong>屏蔽：</strong>在大促，促销活动的可预知情况下，例如双11活动。采用直接屏蔽接口访问。（可知）         mock=force:return null</p>
+<h4 id="场景重现"><a href="#场景重现" class="headerlink" title="场景重现"></a>场景重现</h4><h5 id="容错"><a href="#容错" class="headerlink" title="容错"></a>容错</h5><p>启动zk，启动服务端，启动客户端。</p>
+<p>给服务端打上断点就会出现，请求超时</p>
+<p><img src="dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E5%AE%9E%E7%8E%B0SOA%E6%9C%8D%E5%8A%A1%E9%99%8D%E7%BA%A7/1.png" alt="请求超时"></p>
+<p>配置容错(状态改成-启用)</p>
+<p><img src="dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E5%AE%9E%E7%8E%B0SOA%E6%9C%8D%E5%8A%A1%E9%99%8D%E7%BA%A7/2.png"></p>
+<p>报错信息立刻消除，结果如下</p>
+<p><img src="dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E5%AE%9E%E7%8E%B0SOA%E6%9C%8D%E5%8A%A1%E9%99%8D%E7%BA%A7/3.png"></p>
+<h5 id="屏蔽"><a href="#屏蔽" class="headerlink" title="屏蔽"></a>屏蔽</h5><p>方法同上，即将所有方法的Mock值改成-屏蔽</p>
+<h3 id="源码分析"><a href="#源码分析" class="headerlink" title="源码分析"></a>源码分析</h3><p>从前面几篇博客不难看出，进入集群的起点就是MockClusterInvoker.invoke</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Result <span class="title">invoke</span><span class="params">(Invocation invocation)</span> <span class="keyword">throws</span> RpcException </span>&#123;</span><br><span class="line">    Result result = <span class="keyword">null</span>;</span><br><span class="line"></span><br><span class="line">    String value = directory.getUrl().getMethodParameter(invocation.getMethodName(), Constants.MOCK_KEY, Boolean.FALSE.toString()).trim();</span><br><span class="line">    <span class="keyword">if</span> (value.length() == <span class="number">0</span> || value.equalsIgnoreCase(<span class="string">&quot;false&quot;</span>)) &#123;</span><br><span class="line">        <span class="comment">//no mock</span></span><br><span class="line">        result = <span class="keyword">this</span>.invoker.invoke(invocation);</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (value.startsWith(<span class="string">&quot;force&quot;</span>)) &#123;<span class="comment">// 屏蔽</span></span><br><span class="line">        <span class="keyword">if</span> (logger.isWarnEnabled()) &#123;</span><br><span class="line">            logger.info(<span class="string">&quot;force-mock: &quot;</span> + invocation.getMethodName() + <span class="string">&quot; force-mock enabled , url : &quot;</span> + directory.getUrl());</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//force:direct mock</span></span><br><span class="line">        result = doMockInvoke(invocation, <span class="keyword">null</span>);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;<span class="comment">// 容错</span></span><br><span class="line">        <span class="comment">//fail-mock</span></span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            result = <span class="keyword">this</span>.invoker.invoke(invocation);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (RpcException e) &#123;</span><br><span class="line">            <span class="keyword">if</span> (e.isBiz()) &#123;</span><br><span class="line">                <span class="keyword">throw</span> e;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="keyword">if</span> (logger.isWarnEnabled()) &#123;</span><br><span class="line">               		<span class="comment">// 打印info级别</span></span><br><span class="line">                    logger.info(<span class="string">&quot;fail-mock: &quot;</span> + invocation.getMethodName() + <span class="string">&quot; fail-mock enabled , url : &quot;</span> + directory.getUrl(), e);</span><br><span class="line">                &#125;</span><br><span class="line">                result = doMockInvoke(invocation, e);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>看这个逻辑，在正常和容错的情况下时，都是要result = this.invoker.invoke(invocation);，请求服务端的，只是容错时，在出现异常情况下，会有特殊处理。而在屏蔽的情况下，是不会再去请求服务端了，直接doMockInvoke，先看看容错。</p>
+<h4 id="容错-1"><a href="#容错-1" class="headerlink" title="容错"></a>容错</h4><h4 id="容错-2"><a href="#容错-2" class="headerlink" title="容错"></a>容错</h4><h5 id="doMockInvoker"><a href="#doMockInvoker" class="headerlink" title="doMockInvoker()"></a>doMockInvoker()</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@SuppressWarnings(&#123;&quot;unchecked&quot;, &quot;rawtypes&quot;&#125;)</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> Result <span class="title">doMockInvoke</span><span class="params">(Invocation invocation, RpcException e)</span> </span>&#123;</span><br><span class="line">        Result result = <span class="keyword">null</span>;</span><br><span class="line">        Invoker&lt;T&gt; minvoker;</span><br><span class="line">        <span class="comment">//  选择一个invoker</span></span><br><span class="line">        List&lt;Invoker&lt;T&gt;&gt; mockInvokers = selectMockInvoker(invocation);</span><br><span class="line">        <span class="keyword">if</span> (mockInvokers == <span class="keyword">null</span> || mockInvokers.size() == <span class="number">0</span>) &#123;</span><br><span class="line">            minvoker = (Invoker&lt;T&gt;) <span class="keyword">new</span> MockInvoker(directory.getUrl());</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            minvoker = mockInvokers.get(<span class="number">0</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            result = minvoker.invoke(invocation);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (RpcException me) &#123;</span><br><span class="line">            <span class="keyword">if</span> (me.isBiz()) &#123;</span><br><span class="line">                result = <span class="keyword">new</span> RpcResult(me.getCause());</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="keyword">throw</span> <span class="keyword">new</span> RpcException(me.getCode(), getMockExceptionMessage(e, me), me.getCause());</span><br><span class="line">            &#125;</span><br><span class="line"><span class="comment">//       </span></span><br><span class="line">        &#125; <span class="keyword">catch</span> (Throwable me) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> RpcException(getMockExceptionMessage(e, me), me.getCause());</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> result;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<h5 id="selectMockInvoker"><a href="#selectMockInvoker" class="headerlink" title="selectMockInvoker()"></a>selectMockInvoker()</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 返回MockInvoker</span></span><br><span class="line"><span class="comment"> * 契约：</span></span><br><span class="line"><span class="comment"> * directory根据invocation中是否有Constants.INVOCATION_NEED_MOCK，来判断获取的是一个normal invoker 还是一个 mock invoker</span></span><br><span class="line"><span class="comment"> * 如果directorylist 返回多个mock invoker，只使用第一个invoker.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> invocation</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">private</span> List&lt;Invoker&lt;T&gt;&gt; selectMockInvoker(Invocation invocation) &#123;</span><br><span class="line">    <span class="comment">//TODO generic invoker？</span></span><br><span class="line">    <span class="keyword">if</span> (invocation <span class="keyword">instanceof</span> RpcInvocation) &#123;</span><br><span class="line">        <span class="comment">//存在隐含契约(虽然在接口声明中增加描述，但扩展性会存在问题.同时放在attachement中的做法需要改进</span></span><br><span class="line">        ((RpcInvocation) invocation).setAttachment(Constants.INVOCATION_NEED_MOCK, Boolean.TRUE.toString());</span><br><span class="line">        <span class="comment">//directory根据invocation中attachment是否有Constants.INVOCATION_NEED_MOCK，来判断获取的是normal invokers or mock invokers</span></span><br><span class="line">        <span class="comment">// 在屏蔽情况下，在目录里筛选的invoker都是null</span></span><br><span class="line">        List&lt;Invoker&lt;T&gt;&gt; invokers = directory.list(invocation);</span><br><span class="line">        <span class="keyword">return</span> invokers;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里返回的invokers是null，也就是在出现超时情况下，注解屏蔽注册中心zk中的所有内容了。</p>
+<h5 id="接着看doMockInvoker"><a href="#接着看doMockInvoker" class="headerlink" title="接着看doMockInvoker()"></a>接着看doMockInvoker()</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@SuppressWarnings(&#123;&quot;unchecked&quot;, &quot;rawtypes&quot;&#125;)</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> Result <span class="title">doMockInvoke</span><span class="params">(Invocation invocation, RpcException e)</span> </span>&#123;</span><br><span class="line">        Result result = <span class="keyword">null</span>;</span><br><span class="line">        Invoker&lt;T&gt; minvoker;</span><br><span class="line">        <span class="comment">//  选择一个invoker</span></span><br><span class="line">        List&lt;Invoker&lt;T&gt;&gt; mockInvokers = selectMockInvoker(invocation);</span><br><span class="line">        <span class="keyword">if</span> (mockInvokers == <span class="keyword">null</span> || mockInvokers.size() == <span class="number">0</span>) &#123;</span><br><span class="line">        	<span class="comment">//自己创建一个服务端地址</span></span><br><span class="line">            minvoker = (Invoker&lt;T&gt;) <span class="keyword">new</span> MockInvoker(directory.getUrl());</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            minvoker = mockInvokers.get(<span class="number">0</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            result = minvoker.invoke(invocation);<span class="comment">//debug进去</span></span><br><span class="line">        &#125; <span class="keyword">catch</span> (RpcException me) &#123;</span><br><span class="line">            <span class="keyword">if</span> (me.isBiz()) &#123;</span><br><span class="line">                result = <span class="keyword">new</span> RpcResult(me.getCause());</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="keyword">throw</span> <span class="keyword">new</span> RpcException(me.getCode(), getMockExceptionMessage(e, me), me.getCause());</span><br><span class="line">            &#125;</span><br><span class="line"><span class="comment">//       </span></span><br><span class="line">        &#125; <span class="keyword">catch</span> (Throwable me) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> RpcException(getMockExceptionMessage(e, me), me.getCause());</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> result;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<h5 id="invoke"><a href="#invoke" class="headerlink" title="invoke()"></a>invoke()</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Result <span class="title">invoke</span><span class="params">(Invocation invocation)</span> <span class="keyword">throws</span> RpcException </span>&#123;</span><br><span class="line">    String mock = getUrl().getParameter(invocation.getMethodName() + <span class="string">&quot;.&quot;</span> + Constants.MOCK_KEY);</span><br><span class="line">    <span class="keyword">if</span> (invocation <span class="keyword">instanceof</span> RpcInvocation) &#123;</span><br><span class="line">        ((RpcInvocation) invocation).setInvoker(<span class="keyword">this</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (StringUtils.isBlank(mock)) &#123;</span><br><span class="line">        mock = getUrl().getParameter(Constants.MOCK_KEY);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (StringUtils.isBlank(mock)) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> RpcException(<span class="keyword">new</span> IllegalAccessException(<span class="string">&quot;mock can not be null. url :&quot;</span> + url));</span><br><span class="line">    &#125;</span><br><span class="line">    mock = normallizeMock(URL.decode(mock));</span><br><span class="line">    <span class="keyword">if</span> (Constants.RETURN_PREFIX.trim().equalsIgnoreCase(mock.trim())) &#123;</span><br><span class="line">        RpcResult result = <span class="keyword">new</span> RpcResult();</span><br><span class="line">        result.setValue(<span class="keyword">null</span>);</span><br><span class="line">        <span class="keyword">return</span> result;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (mock.startsWith(Constants.RETURN_PREFIX)) &#123;</span><br><span class="line">        mock = mock.substring(Constants.RETURN_PREFIX.length()).trim();</span><br><span class="line">        mock = mock.replace(<span class="string">&#x27;`&#x27;</span>, <span class="string">&#x27;&quot;&#x27;</span>);</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            Type[] returnTypes = RpcUtils.getReturnTypes(invocation);</span><br><span class="line">            Object value = parseMockValue(mock, returnTypes);</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">new</span> RpcResult(value);<span class="comment">// 直接返回RpcResult，value的值为null</span></span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception ew) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> RpcException(<span class="string">&quot;mock return invoke error. method :&quot;</span> + invocation.getMethodName() + <span class="string">&quot;, mock:&quot;</span> + mock + <span class="string">&quot;, url: &quot;</span> + url, ew);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p>这样容错的处理就讲完了</p>
+<h4 id="屏蔽-1"><a href="#屏蔽-1" class="headerlink" title="屏蔽"></a>屏蔽</h4><p>直接请求doMockInvoke(invocation, null);过程和容错一致</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/dubbo/" rel="tag"># dubbo</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/03/24/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E9%9B%86%E7%BE%A4%E5%AE%B9%E9%94%99-loadbalance%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1/" rel="next" title="dubbo系列之集群容错-loadbalance负载均衡">
+                <i class="fa fa-chevron-left"></i> dubbo系列之集群容错-loadbalance负载均衡
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/03/31/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1-consumer%E5%8F%91%E9%80%81%E5%8E%9F%E7%90%86/" rel="prev" title="dubbo系列之网络通信-consumer发送原理">
+                dubbo系列之网络通信-consumer发送原理 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/cat.jpg"
+                alt="" />
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/%20%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">66</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">16</span>
+                  <span class="site-state-item-name">标签</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/yestermorrow" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E5%AE%9E%E7%8E%B0SOA%E6%9C%8D%E5%8A%A1%E9%99%8D%E7%BA%A7"><span class="nav-number">1.</span> <span class="nav-text">dubbo系列之实现SOA服务降级</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AE%80%E4%BB%8B"><span class="nav-number">1.0.1.</span> <span class="nav-text">简介</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E6%9C%8D%E5%8A%A1%E5%BC%80%E5%85%B3%EF%BC%9F"><span class="nav-number">1.0.1.0.1.</span> <span class="nav-text">什么是服务开关？</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E6%9C%8D%E5%8A%A1%E9%99%8D%E7%BA%A7%EF%BC%9F"><span class="nav-number">1.0.1.0.2.</span> <span class="nav-text">什么是服务降级？</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#dubbo%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E6%9C%8D%E5%8A%A1%E9%99%8D%E7%BA%A7%EF%BC%9F"><span class="nav-number">1.0.1.0.3.</span> <span class="nav-text">dubbo如何实现服务降级？</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%9C%BA%E6%99%AF%E9%87%8D%E7%8E%B0"><span class="nav-number">1.0.1.1.</span> <span class="nav-text">场景重现</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%AE%B9%E9%94%99"><span class="nav-number">1.0.1.1.1.</span> <span class="nav-text">容错</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%B1%8F%E8%94%BD"><span class="nav-number">1.0.1.1.2.</span> <span class="nav-text">屏蔽</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90"><span class="nav-number">1.0.2.</span> <span class="nav-text">源码分析</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%B9%E9%94%99-1"><span class="nav-number">1.0.2.1.</span> <span class="nav-text">容错</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%B9%E9%94%99-2"><span class="nav-number">1.0.2.2.</span> <span class="nav-text">容错</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#doMockInvoker"><span class="nav-number">1.0.2.2.1.</span> <span class="nav-text">doMockInvoker()</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#selectMockInvoker"><span class="nav-number">1.0.2.2.2.</span> <span class="nav-text">selectMockInvoker()</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%8E%A5%E7%9D%80%E7%9C%8BdoMockInvoker"><span class="nav-number">1.0.2.2.3.</span> <span class="nav-text">接着看doMockInvoker()</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#invoke"><span class="nav-number">1.0.2.2.4.</span> <span class="nav-text">invoke()</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B1%8F%E8%94%BD-1"><span class="nav-number">1.0.2.3.</span> <span class="nav-text">屏蔽</span></a></li></ol></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">yestermorrow</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

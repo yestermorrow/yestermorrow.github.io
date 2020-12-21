@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="网络编程," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="TCP&#x2F;UDP 协议OSI网络七层模型 各层的主要功能 Http服务器就是实现高三层的功能 传输控制协议TCP TCP握手机制三次握手——— 检测网络是否通畅 四次挥手——— 不能随意断开，以防正在传输的数据被中断，导致数据不正确，  握手机制就是为了让传输更加可靠 用户数据报协议UDP UDP和TCP比较   TCP UDP    面向连接 无连接   提供可靠性保证 不可靠   慢 快   资">
+<meta property="og:type" content="article">
+<meta property="og:title" content="TCP&#x2F;UDP 协议">
+<meta property="og:url" content="http://yoursite.com/2019/07/25/TCP-UDP-%E5%8D%8F%E8%AE%AE/index.html">
+<meta property="og:site_name" content="Yestermorrow">
+<meta property="og:description" content="TCP&#x2F;UDP 协议OSI网络七层模型 各层的主要功能 Http服务器就是实现高三层的功能 传输控制协议TCP TCP握手机制三次握手——— 检测网络是否通畅 四次挥手——— 不能随意断开，以防正在传输的数据被中断，导致数据不正确，  握手机制就是为了让传输更加可靠 用户数据报协议UDP UDP和TCP比较   TCP UDP    面向连接 无连接   提供可靠性保证 不可靠   慢 快   资">
+<meta property="og:locale">
+<meta property="og:image" content="http://yoursite.com/2019/07/25/TCP-UDP-%E5%8D%8F%E8%AE%AE/TCP-UDP-%E5%8D%8F%E8%AE%AE/1564024694581.jpg">
+<meta property="og:image" content="http://yoursite.com/2019/07/25/TCP-UDP-%E5%8D%8F%E8%AE%AE/TCP-UDP-%E5%8D%8F%E8%AE%AE/1564039635016.jpg">
+<meta property="og:image" content="http://yoursite.com/2019/07/25/TCP-UDP-%E5%8D%8F%E8%AE%AE/TCP-UDP-%E5%8D%8F%E8%AE%AE/1564040008360.jpg">
+<meta property="og:image" content="http://yoursite.com/2019/07/25/TCP-UDP-%E5%8D%8F%E8%AE%AE/TCP-UDP-%E5%8D%8F%E8%AE%AE/1564040354674.jpg">
+<meta property="og:image" content="http://yoursite.com/2019/07/25/TCP-UDP-%E5%8D%8F%E8%AE%AE/TCP-UDP-%E5%8D%8F%E8%AE%AE/1564040976841.jpg">
+<meta property="og:image" content="http://yoursite.com/2019/07/25/TCP-UDP-%E5%8D%8F%E8%AE%AE/TCP-UDP-%E5%8D%8F%E8%AE%AE/1564041434762.jpg">
+<meta property="og:image" content="http://yoursite.com/2019/07/25/TCP-UDP-%E5%8D%8F%E8%AE%AE/TCP-UDP-%E5%8D%8F%E8%AE%AE/1564041600308.jpg">
+<meta property="article:published_time" content="2019-07-25T03:13:24.000Z">
+<meta property="article:modified_time" content="2019-07-25T08:46:44.000Z">
+<meta property="article:author" content="yestermorrow">
+<meta property="article:tag" content="网络编程">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2019/07/25/TCP-UDP-%E5%8D%8F%E8%AE%AE/TCP-UDP-%E5%8D%8F%E8%AE%AE/1564024694581.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/07/25/TCP-UDP-协议/"/>
+
+
+
+
+
+  <title>TCP/UDP 协议 | Yestermorrow</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 5.3.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Yestermorrow</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/%20" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/%20" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/07/25/TCP-UDP-%E5%8D%8F%E8%AE%AE/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/cat.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Yestermorrow">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">TCP/UDP 协议</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-07-25T11:13:24+08:00">
+                2019-07-25
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="TCP-UDP-协议"><a href="#TCP-UDP-协议" class="headerlink" title="TCP/UDP 协议"></a>TCP/UDP 协议</h1><h3 id="OSI网络七层模型"><a href="#OSI网络七层模型" class="headerlink" title="OSI网络七层模型"></a>OSI网络七层模型</h3><p><img src="TCP-UDP-%E5%8D%8F%E8%AE%AE/1564024694581.jpg"></p>
+<h4 id="各层的主要功能"><a href="#各层的主要功能" class="headerlink" title="各层的主要功能"></a>各层的主要功能</h4><p><img src="TCP-UDP-%E5%8D%8F%E8%AE%AE/1564039635016.jpg"></p>
+<p>Http服务器就是实现高三层的功能</p>
+<h4 id="传输控制协议TCP"><a href="#传输控制协议TCP" class="headerlink" title="传输控制协议TCP"></a>传输控制协议TCP</h4><p><img src="TCP-UDP-%E5%8D%8F%E8%AE%AE/1564040008360.jpg"></p>
+<h5 id="TCP握手机制"><a href="#TCP握手机制" class="headerlink" title="TCP握手机制"></a>TCP握手机制</h5><p><strong>三次握手</strong>——— 检测网络是否通畅</p>
+<p><strong>四次挥手</strong>——— 不能随意断开，以防正在传输的数据被中断，导致数据不正确，</p>
+<p><img src="TCP-UDP-%E5%8D%8F%E8%AE%AE/1564040354674.jpg"></p>
+<p>握手机制就是为了让传输更加可靠</p>
+<h4 id="用户数据报协议UDP"><a href="#用户数据报协议UDP" class="headerlink" title="用户数据报协议UDP"></a>用户数据报协议UDP</h4><p><img src="TCP-UDP-%E5%8D%8F%E8%AE%AE/1564040976841.jpg"></p>
+<h5 id="UDP和TCP比较"><a href="#UDP和TCP比较" class="headerlink" title="UDP和TCP比较"></a>UDP和TCP比较</h5><table>
+<thead>
+<tr>
+<th>TCP</th>
+<th>UDP</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>面向连接</td>
+<td>无连接</td>
+</tr>
+<tr>
+<td>提供可靠性保证</td>
+<td>不可靠</td>
+</tr>
+<tr>
+<td>慢</td>
+<td>快</td>
+</tr>
+<tr>
+<td>资源占用多</td>
+<td>资源占用少</td>
+</tr>
+</tbody></table>
+<p>💡什么情况下用到UDP？</p>
+<p>UDP一般用于即时通信（QQ聊天 对数据准确性和丢包要求比较低，但速度必须快），在线视频（RTSP 速度一定要快，保证视频连续，但是偶尔花了一个图像帧，人们还是能接受的），网络语音电话（VoIP 语音数据包一般比较小，需要高速发送，偶尔断音或串音也没有问题）等等。 作为知识的扩展，可以再说一些其他应用。比如，TCP可以用于网络数据库，分布式高精度计算系统的数据传输；UDP可以用于服务系统内部之间的数据传输，因为数据可能比较多，内部系统局域网内的丢包错包率又很低，即便丢包，顶多是操作无效，这种情况下，UDP经常被使用。</p>
+<h3 id="Socket编程"><a href="#Socket编程" class="headerlink" title="Socket编程"></a>Socket编程</h3><p><img src="TCP-UDP-%E5%8D%8F%E8%AE%AE/1564041434762.jpg"></p>
+<p><img src="TCP-UDP-%E5%8D%8F%E8%AE%AE/1564041600308.jpg"></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/" rel="tag"># 网络编程</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/07/22/HashMap-ConcurrentHashMap1-7%E5%92%8C1-8/" rel="next" title="HashMap ConcurrentHashMap1.7和1.8">
+                <i class="fa fa-chevron-left"></i> HashMap ConcurrentHashMap1.7和1.8
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/07/25/NIO%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/" rel="prev" title="NIO网络编程">
+                NIO网络编程 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/cat.jpg"
+                alt="" />
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/%20%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">66</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">16</span>
+                  <span class="site-state-item-name">标签</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/yestermorrow" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#TCP-UDP-%E5%8D%8F%E8%AE%AE"><span class="nav-number">1.</span> <span class="nav-text">TCP&#x2F;UDP 协议</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#OSI%E7%BD%91%E7%BB%9C%E4%B8%83%E5%B1%82%E6%A8%A1%E5%9E%8B"><span class="nav-number">1.0.1.</span> <span class="nav-text">OSI网络七层模型</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%90%84%E5%B1%82%E7%9A%84%E4%B8%BB%E8%A6%81%E5%8A%9F%E8%83%BD"><span class="nav-number">1.0.1.1.</span> <span class="nav-text">各层的主要功能</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BC%A0%E8%BE%93%E6%8E%A7%E5%88%B6%E5%8D%8F%E8%AE%AETCP"><span class="nav-number">1.0.1.2.</span> <span class="nav-text">传输控制协议TCP</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#TCP%E6%8F%A1%E6%89%8B%E6%9C%BA%E5%88%B6"><span class="nav-number">1.0.1.2.1.</span> <span class="nav-text">TCP握手机制</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%94%A8%E6%88%B7%E6%95%B0%E6%8D%AE%E6%8A%A5%E5%8D%8F%E8%AE%AEUDP"><span class="nav-number">1.0.1.3.</span> <span class="nav-text">用户数据报协议UDP</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#UDP%E5%92%8CTCP%E6%AF%94%E8%BE%83"><span class="nav-number">1.0.1.3.1.</span> <span class="nav-text">UDP和TCP比较</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Socket%E7%BC%96%E7%A8%8B"><span class="nav-number">1.0.2.</span> <span class="nav-text">Socket编程</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">yestermorrow</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

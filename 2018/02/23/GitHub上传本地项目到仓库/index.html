@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="转载," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="Git的安装就不说了。 ​       第一步：我们需要先创建一个本地的版本库（其实也就是一个文件夹）。 ​       你可以直接右击新建文件夹，也可以右击打开Git bash命令行窗口通过命令来创建。 ​       现在我通过命令行在桌面新建一个TEST文件夹（你也可以在其他任何地方创建这个文件夹），并且进入这个文件夹 ​">
+<meta property="og:type" content="article">
+<meta property="og:title" content="GitHub上传本地项目到仓库">
+<meta property="og:url" content="http://yoursite.com/2018/02/23/GitHub%E4%B8%8A%E4%BC%A0%E6%9C%AC%E5%9C%B0%E9%A1%B9%E7%9B%AE%E5%88%B0%E4%BB%93%E5%BA%93/index.html">
+<meta property="og:site_name" content="Yestermorrow">
+<meta property="og:description" content="Git的安装就不说了。 ​       第一步：我们需要先创建一个本地的版本库（其实也就是一个文件夹）。 ​       你可以直接右击新建文件夹，也可以右击打开Git bash命令行窗口通过命令来创建。 ​       现在我通过命令行在桌面新建一个TEST文件夹（你也可以在其他任何地方创建这个文件夹），并且进入这个文件夹 ​">
+<meta property="og:locale">
+<meta property="og:image" content="http://img.blog.csdn.net/20170414161402727">
+<meta property="og:image" content="http://img.blog.csdn.net/20170414162236852">
+<meta property="og:image" content="http://img.blog.csdn.net/20170414161902115">
+<meta property="og:image" content="http://img.blog.csdn.net/20170414162459663">
+<meta property="og:image" content="http://img.blog.csdn.net/20170414163732836">
+<meta property="og:image" content="http://img.blog.csdn.net/20170414164056636">
+<meta property="og:image" content="http://img.blog.csdn.net/20170414163839578">
+<meta property="og:image" content="http://img.blog.csdn.net/20170414164422518">
+<meta property="og:image" content="http://img.blog.csdn.net/20170414164738754">
+<meta property="og:image" content="http://img.blog.csdn.net/20170414170253668">
+<meta property="og:image" content="http://img.blog.csdn.net/20170414204647937">
+<meta property="og:image" content="http://img.blog.csdn.net/20170414204707499">
+<meta property="og:image" content="http://img.blog.csdn.net/20170414204739187">
+<meta property="og:image" content="http://img.blog.csdn.net/20170414204816539">
+<meta property="og:image" content="http://img.blog.csdn.net/20170414205837600">
+<meta property="og:image" content="http://img.blog.csdn.net/20170414210812167">
+<meta property="og:image" content="http://img.blog.csdn.net/20170414211408809">
+<meta property="og:image" content="http://img.blog.csdn.net/20170414211925894">
+<meta property="og:image" content="http://img.blog.csdn.net/20170414212947320">
+<meta property="article:published_time" content="2018-02-23T02:13:10.000Z">
+<meta property="article:modified_time" content="2018-02-26T12:42:00.000Z">
+<meta property="article:author" content="yestermorrow">
+<meta property="article:tag" content="转载">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://img.blog.csdn.net/20170414161402727">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/02/23/GitHub上传本地项目到仓库/"/>
+
+
+
+
+
+  <title>GitHub上传本地项目到仓库 | Yestermorrow</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 5.3.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Yestermorrow</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/%20" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/%20" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/02/23/GitHub%E4%B8%8A%E4%BC%A0%E6%9C%AC%E5%9C%B0%E9%A1%B9%E7%9B%AE%E5%88%B0%E4%BB%93%E5%BA%93/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/cat.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Yestermorrow">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">GitHub上传本地项目到仓库</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-02-23T10:13:10+08:00">
+                2018-02-23
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>Git的安装就不说了。</p>
+<p>​       第一步：我们需要先创建一个本地的版本库（其实也就是一个文件夹）。</p>
+<p>​       你可以直接右击新建文件夹，也可以右击打开Git bash命令行窗口通过命令来创建。</p>
+<p>​       现在我通过命令行在桌面新建一个TEST文件夹（你也可以在其他任何地方创建这个文件夹），并且进入这个文件夹</p>
+<p>​       <img src="http://img.blog.csdn.net/20170414161402727" alt="img">                                   </p>
+<p>​        <img src="http://img.blog.csdn.net/20170414162236852" alt="img"></p>
+<p>​       第二步：通过命令git init把这个文件夹变成Git可管理的仓库</p>
+<p>​       <img src="http://img.blog.csdn.net/20170414161902115" alt="img"></p>
+<p>​       这时你会发现TEST里面多了个.git文件夹，它是Git用来跟踪和管理版本库的。如果你看不到，是因为它默认是隐藏文件，那你就需要设置一下让隐藏文件可见。</p>
+<p>​       <img src="http://img.blog.csdn.net/20170414162459663" alt="img"></p>
+<p>​       第三步：这时候你就可以把你的项目粘贴到这个本地Git仓库里面（粘贴后你可以通过git status来查看你当前的状态），然后通过git add把项目添加到仓库（或git add .把该目录下的所有文件添加到仓库，注意点是用空格隔开的）。在这个过程中你其实可以一直使用git status来查看你当前的状态。</p>
+<p>​       <img src="http://img.blog.csdn.net/20170414163732836" alt="img"></p>
+<p>​       <img src="http://img.blog.csdn.net/20170414164056636" alt="img"></p>
+<p>​       这里提示你虽然把项目粘贴过来了，但还没有add到Git仓库上，然后我们通过git add .把刚才复制过来的项目全部添加到仓库上。</p>
+<p>​       <img src="http://img.blog.csdn.net/20170414163839578" alt="img"></p>
+<p>​       <img src="http://img.blog.csdn.net/20170414164422518" alt="img"></p>
+<p>​        第四步：用git commit把项目提交到仓库。</p>
+<p>​        <img src="http://img.blog.csdn.net/20170414164738754" alt="img"></p>
+<p>​        -m后面引号里面是本次提交的注释内容，这个可以不写，但最好写上，不然会报错，详情自行Google。 好了，我们本地Git仓库这边的工作做完了，下面就到了连接远程仓库（也就是连接Github）</p>
+<p>​      由于本地Git仓库和Github仓库之间的传输是通过SSH加密的，所以连接时需要设置一下：</p>
+<p>​      第五步：创建SSH KEY。先看一下你C盘用户目录下有没有.ssh目录，有的话看下里面有没有id_rsa和id_rsa.pub这两个文件，有就跳到下一步，没有就通过下面命令创建</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ ssh-keygen -t rsa -C &quot;youremail@example.com&quot;</span><br></pre></td></tr></table></figure>
+<p>然后一路回车。这时你就会在用户下的.ssh目录里找到id_rsa和id_rsa.pub这两个文件   </p>
+<p>​      <img src="http://img.blog.csdn.net/20170414170253668" alt="img"> </p>
+<p>​      第六步：登录Github,找到右上角的图标，打开点进里面的Settings，再选中里面的SSH and GPG KEYS，点击右上角的New SSH key，然后Title里面随便填，再把刚才id_rsa.pub里面的内容复制到Title下面的Key内容框里面，最后点击Add SSH key，这样就完成了SSH Key的加密。具体步骤也可看下面：</p>
+<p>​       <img src="http://img.blog.csdn.net/20170414204647937" alt="img"></p>
+<p><img src="http://img.blog.csdn.net/20170414204707499" alt="img"></p>
+<p>​       <img src="http://img.blog.csdn.net/20170414204739187" alt="img"></p>
+<p>​    <img src="http://img.blog.csdn.net/20170414204816539" alt="img"></p>
+<p>​        第七步：在Github上创建一个Git仓库。</p>
+<p>​     你可以直接点New repository来创建，比如我创建了一个TEST2的仓库（因为我里面已经有了一个test的仓库，所以不能再创建TEST仓库）。</p>
+<p>   <img src="http://img.blog.csdn.net/20170414205837600" alt="img"></p>
+<p>​        第八步：在Github上创建好Git仓库之后我们就可以和本地仓库进行关联了，根据创建好的Git仓库页面的提示，可以在本地TEST仓库的命令行输入：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ git remote add origin https:&#x2F;&#x2F;github.com&#x2F;guyibang&#x2F;TEST2.git</span><br></pre></td></tr></table></figure>
+<p>​        注意origin后面加的是你Github上创建好的仓库的地址。</p>
+<p>​        <img src="http://img.blog.csdn.net/20170414210812167" alt="img"></p>
+<p>​      第九步：关联好之后我们就可以把本地库的所有内容推送到远程仓库（也就是Github）上了，通过：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ git push -u origin master</span><br></pre></td></tr></table></figure>
+<p> 由于新建的远程仓库是空的，所以要加上-u这个参数，等远程仓库里面有了内容之后，下次再从本地库上传内容的时候只需下面这样就可以了：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ git push origin master</span><br></pre></td></tr></table></figure>
+<p>​        上传项目的过程可能需要等一段时间，完成之后是这样的：</p>
+<p>​        <img src="http://img.blog.csdn.net/20170414211408809" alt="img"></p>
+<p>​        这时候你再重新刷新你的Github页面进入刚才新建的那个仓库里面就会发现项目已经成功上传了：</p>
+<p>​      <img src="http://img.blog.csdn.net/20170414211925894" alt="img"></p>
+<p>​        至此就完成了将本地项目上传到Github的整个过程。</p>
+<p>​      另外，这里有个坑需要注意一下，就是在上面第七步创建远程仓库的时候，如果你勾选了Initialize this repository with a README（就是创建仓库的时候自动给你创建一个README文件），那么到了第九步你将本地仓库内容推送到远程仓库的时候就会报一个failed to push some refs to  <a target="_blank" rel="noopener" href="https://github.com/guyibang/TEST2.git%E7%9A%84%E9%94%99%E3%80%82">https://github.com/guyibang/TEST2.git的错。</a></p>
+<p>​      <img src="http://img.blog.csdn.net/20170414212947320" alt="img"></p>
+<p>​      这是由于你新创建的那个仓库里面的README文件不在本地仓库目录中，这时我们可以通过以下命令先将内容合并以下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ git pull --rebase origin master</span><br></pre></td></tr></table></figure>
+<p>​       这时你再push就能成功了。</p>
+<p>​     总结：其实只需要进行下面几步就能把本地项目上传到Github</p>
+<p>​     1、在本地创建一个版本库（即文件夹），通过git init把它变成Git仓库；</p>
+<p>​     2、把项目复制到这个文件夹里面，再通过git add .把项目添加到仓库；</p>
+<p>​     3、再通过git commit -m “注释内容”把项目提交到仓库；</p>
+<p>​     4、在Github上设置好SSH密钥后，新建一个远程仓库，通过git remote add origin <a target="_blank" rel="noopener" href="https://github.com/guyibang/TEST2.git%E5%B0%86%E6%9C%AC%E5%9C%B0%E4%BB%93%E5%BA%93%E5%92%8C%E8%BF%9C%E7%A8%8B%E4%BB%93%E5%BA%93%E8%BF%9B%E8%A1%8C%E5%85%B3%E8%81%94%EF%BC%9B">https://github.com/guyibang/TEST2.git将本地仓库和远程仓库进行关联；</a></p>
+<p>​     5、最后通过git push -u origin master把本地仓库的项目推送到远程仓库（也就是Github）上；（若新建远程仓库的时候自动创建了README文件会报错，解决办法看上面）。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/%E8%BD%AC%E8%BD%BD/" rel="tag"># 转载</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/02/22/JDK8%E4%B8%8BConcurrentHashMap%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" rel="next" title="JDK1.8下ConcurrentHashMap源码解析">
+                <i class="fa fa-chevron-left"></i> JDK1.8下ConcurrentHashMap源码解析
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/02/27/dubbo%E7%B3%BB%E5%88%97%E4%B9%8BSPI%E6%9C%BA%E5%88%B6%E5%AE%9E%E7%8E%B0/" rel="prev" title="dubbo系列之SPI机制实现">
+                dubbo系列之SPI机制实现 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/cat.jpg"
+                alt="" />
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/%20%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">66</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">16</span>
+                  <span class="site-state-item-name">标签</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/yestermorrow" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">yestermorrow</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

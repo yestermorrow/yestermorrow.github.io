@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="dubbo," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="前言前面几篇关于dubbo的文章一直都是介绍服务暴露，这篇文章就来说说服务的引用。 源码构成先来一张官方文档上的图  看代码最重要的一步就是找到代码的起点，服务消费的起点就是dubbo-demo-cosumer.xml文件 12&lt;!-- 生成远程服务代理，可以和本地bean一样使用demoService --&gt;&lt;dubbo:reference id&#x3D;&quot;demoServi">
+<meta property="og:type" content="article">
+<meta property="og:title" content="dubbo系列之服务引用-原理">
+<meta property="og:url" content="http://yoursite.com/2018/03/19/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E6%9C%8D%E5%8A%A1%E5%BC%95%E7%94%A8-%E5%8E%9F%E7%90%86/index.html">
+<meta property="og:site_name" content="Yestermorrow">
+<meta property="og:description" content="前言前面几篇关于dubbo的文章一直都是介绍服务暴露，这篇文章就来说说服务的引用。 源码构成先来一张官方文档上的图  看代码最重要的一步就是找到代码的起点，服务消费的起点就是dubbo-demo-cosumer.xml文件 12&lt;!-- 生成远程服务代理，可以和本地bean一样使用demoService --&gt;&lt;dubbo:reference id&#x3D;&quot;demoServi">
+<meta property="og:locale">
+<meta property="og:image" content="http://yoursite.com/2018/03/19/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E6%9C%8D%E5%8A%A1%E5%BC%95%E7%94%A8-%E5%8E%9F%E7%90%86/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E6%9C%8D%E5%8A%A1%E5%BC%95%E7%94%A8-%E5%8E%9F%E7%90%86/%E6%9C%8D%E5%8A%A1%E6%B6%88%E8%B4%B9%E8%80%85%E6%B6%88%E8%B4%B9%E4%B8%80%E4%B8%AA%E6%9C%8D%E5%8A%A1%E7%9A%84%E8%AF%A6%E7%BB%86%E8%BF%87%E7%A8%8B.png">
+<meta property="og:image" content="http://yoursite.com/2018/03/19/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E6%9C%8D%E5%8A%A1%E5%BC%95%E7%94%A8-%E5%8E%9F%E7%90%86/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E6%9C%8D%E5%8A%A1%E5%BC%95%E7%94%A8-%E5%8E%9F%E7%90%86/%E6%9C%8D%E5%8A%A1%E5%BC%95%E7%94%A8%E6%B5%81%E7%A8%8B%E5%9B%BE.png">
+<meta property="article:published_time" content="2018-03-19T11:30:30.000Z">
+<meta property="article:modified_time" content="2018-08-28T13:50:04.000Z">
+<meta property="article:author" content="yestermorrow">
+<meta property="article:tag" content="dubbo">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2018/03/19/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E6%9C%8D%E5%8A%A1%E5%BC%95%E7%94%A8-%E5%8E%9F%E7%90%86/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E6%9C%8D%E5%8A%A1%E5%BC%95%E7%94%A8-%E5%8E%9F%E7%90%86/%E6%9C%8D%E5%8A%A1%E6%B6%88%E8%B4%B9%E8%80%85%E6%B6%88%E8%B4%B9%E4%B8%80%E4%B8%AA%E6%9C%8D%E5%8A%A1%E7%9A%84%E8%AF%A6%E7%BB%86%E8%BF%87%E7%A8%8B.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/03/19/dubbo系列之服务引用-原理/"/>
+
+
+
+
+
+  <title>dubbo系列之服务引用-原理 | Yestermorrow</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 5.3.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Yestermorrow</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/%20" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/%20" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/03/19/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E6%9C%8D%E5%8A%A1%E5%BC%95%E7%94%A8-%E5%8E%9F%E7%90%86/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/cat.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Yestermorrow">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">dubbo系列之服务引用-原理</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-03-19T19:30:30+08:00">
+                2018-03-19
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>前面几篇关于dubbo的文章一直都是介绍服务暴露，这篇文章就来说说服务的引用。</p>
+<h3 id="源码构成"><a href="#源码构成" class="headerlink" title="源码构成"></a>源码构成</h3><p>先来一张官方文档上的图</p>
+<p><img src="dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E6%9C%8D%E5%8A%A1%E5%BC%95%E7%94%A8-%E5%8E%9F%E7%90%86/%E6%9C%8D%E5%8A%A1%E6%B6%88%E8%B4%B9%E8%80%85%E6%B6%88%E8%B4%B9%E4%B8%80%E4%B8%AA%E6%9C%8D%E5%8A%A1%E7%9A%84%E8%AF%A6%E7%BB%86%E8%BF%87%E7%A8%8B.png" alt="服务消费者消费一个服务的详细过程"></p>
+<p><strong>看代码最重要的一步就是找到代码的起点</strong>，服务消费的起点就是dubbo-demo-cosumer.xml文件</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- 生成远程服务代理，可以和本地bean一样使用demoService --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dubbo:reference</span> <span class="attr">id</span>=<span class="string">&quot;demoService&quot;</span> <span class="attr">check</span>=<span class="string">&quot;false&quot;</span> <span class="attr">interface</span>=<span class="string">&quot;com.alibaba.dubbo.demo.DemoService&quot;</span>/&gt;</span></span><br></pre></td></tr></table></figure>
+<p>通过spring的schemas标签引用服务，和服务暴露的时候一样，我们找到DubboNameSpaceHandler文件，即dubbo的命名空间处理器，找到dubbo:reference标签解析。</p>
+<h5 id="DubboNamespaceHandler类"><a href="#DubboNamespaceHandler类" class="headerlink" title="DubboNamespaceHandler类"></a>DubboNamespaceHandler类</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">init</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">//......</span></span><br><span class="line">    registerBeanDefinitionParser(<span class="string">&quot;reference&quot;</span>, <span class="keyword">new</span> DubboBeanDefinitionParser(ReferenceBean.class, <span class="keyword">false</span>));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="ReferenceBean类"><a href="#ReferenceBean类" class="headerlink" title="ReferenceBean类"></a>ReferenceBean类</h5><p>观察到ReferenceBean类继承了FactoryBean类，而spring中的FactoryBean类就是用于获取动态代理对象的。所以我们就dubug进入ReferenceBean继承FactoryBean实现的getObject()方法里面看看。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Object <span class="title">getObject</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> get();<span class="comment">//实现spring的FactoryBean，为了获取动态代理对象</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="ReferenceConfig类"><a href="#ReferenceConfig类" class="headerlink" title="ReferenceConfig类"></a>ReferenceConfig类</h5><h6 id="get"><a href="#get" class="headerlink" title="get()"></a>get()</h6><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">synchronized</span> T <span class="title">get</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (destroyed) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException(<span class="string">&quot;Already destroyed!&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (ref == <span class="keyword">null</span>) &#123;</span><br><span class="line">        init();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> ref;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h6 id="init"><a href="#init" class="headerlink" title="init()"></a>init()</h6><h6 id="–-gt-createProxy"><a href="#–-gt-createProxy" class="headerlink" title="–&gt;createProxy()"></a>–&gt;createProxy()</h6><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 通过refer创建invoker对象</span></span><br><span class="line">invoker = refprotocol.refer(interfaceClass, urls.get(<span class="number">0</span>));</span><br></pre></td></tr></table></figure>
+<p> –&gt;ExtensionLoader.getExtensionLoader(Protocol.class).getExtension(“registry”);</p>
+<p>  –&gt;extension.refer(arg0, arg1);<br>​    –&gt;ProtocolFilterWrapper.refer<br>​      –&gt;RegistryProtocol.refer ——建立zk连接</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> &lt;T&gt; <span class="function">Invoker&lt;T&gt; <span class="title">refer</span><span class="params">(Class&lt;T&gt; type, URL url)</span> <span class="keyword">throws</span> RpcException </span>&#123;</span><br><span class="line">    url = url.setProtocol(url.getParameter(Constants.REGISTRY_KEY, Constants.DEFAULT_REGISTRY)).removeParameter(Constants.REGISTRY_KEY);</span><br><span class="line">    Registry registry = registryFactory.getRegistry(url);<span class="comment">//建立zk的连接，和服务发布流程一样</span></span><br><span class="line">    <span class="keyword">if</span> (RegistryService.class.equals(type)) &#123;</span><br><span class="line">        <span class="keyword">return</span> proxyFactory.getInvoker((T) registry, type, url);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// group=&quot;a,b&quot; or group=&quot;*&quot;</span></span><br><span class="line">    Map&lt;String, String&gt; qs = StringUtils.parseQueryString(url.getParameterAndDecoded(Constants.REFER_KEY));</span><br><span class="line">    String group = qs.get(Constants.GROUP_KEY);</span><br><span class="line">    <span class="keyword">if</span> (group != <span class="keyword">null</span> &amp;&amp; group.length() &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> ((Constants.COMMA_SPLIT_PATTERN.split(group)).length &gt; <span class="number">1</span></span><br><span class="line">                || <span class="string">&quot;*&quot;</span>.equals(group)) &#123;</span><br><span class="line">            <span class="keyword">return</span> doRefer(getMergeableCluster(), registry, type, url);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> doRefer(cluster, registry, type, url);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h6 id="doRefer-——创建、订阅节点"><a href="#doRefer-——创建、订阅节点" class="headerlink" title="doRefer()——创建、订阅节点"></a>doRefer()——创建、订阅节点</h6><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> &lt;T&gt; <span class="function">Invoker&lt;T&gt; <span class="title">doRefer</span><span class="params">(Cluster cluster, Registry registry, Class&lt;T&gt; type, URL url)</span> </span>&#123;</span><br><span class="line">    RegistryDirectory&lt;T&gt; directory = <span class="keyword">new</span> RegistryDirectory&lt;T&gt;(type, url);</span><br><span class="line">    directory.setRegistry(registry);</span><br><span class="line">    directory.setProtocol(protocol);</span><br><span class="line">    URL subscribeUrl = <span class="keyword">new</span> URL(Constants.CONSUMER_PROTOCOL, NetUtils.getLocalHost(), <span class="number">0</span>, type.getName(), directory.getUrl().getParameters());</span><br><span class="line">    <span class="keyword">if</span> (!Constants.ANY_VALUE.equals(url.getServiceInterface())</span><br><span class="line">            &amp;&amp; url.getParameter(Constants.REGISTER_KEY, <span class="keyword">true</span>)) &#123;</span><br><span class="line">            <span class="comment">//创建节点</span></span><br><span class="line">        registry.register(subscribeUrl.addParameters(Constants.CATEGORY_KEY, Constants.CONSUMERS_CATEGORY,</span><br><span class="line">                Constants.CHECK_KEY, String.valueOf(<span class="keyword">false</span>)));</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//订阅节点</span></span><br><span class="line">    directory.subscribe(subscribeUrl.addParameter(Constants.CATEGORY_KEY,</span><br><span class="line">            Constants.PROVIDERS_CATEGORY</span><br><span class="line">                    + <span class="string">&quot;,&quot;</span> + Constants.CONFIGURATORS_CATEGORY</span><br><span class="line">                    + <span class="string">&quot;,&quot;</span> + Constants.ROUTERS_CATEGORY));</span><br><span class="line">    <span class="comment">//加入集群路由（下一篇博客再做详解）</span></span><br><span class="line">    <span class="keyword">return</span> cluster.join(directory);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>registry.register//创建zk的节点，和服务端发布一样（省略代码）。节点名为：dubbo/com.alibaba.dubbo.demo.DemoService/consumers</p>
+<p>registry.subscribe//订阅zk的节点，和服务端发布一样（省略代码）。   /dubbo/com.alibaba.dubbo.demo.DemoService/providers，</p>
+<p>/dubbo/com.alibaba.dubbo.demo.DemoService/configurators,                                                                /dubbo/com.alibaba.dubbo.demo.DemoService/routers]</p>
+<p>当然这里说到了服务的发布和引用在建立zk连接，创建节点以及订阅节点都是一样的。<strong>有没有不同之处呢？还是有的，就是在订阅结束之后的通知环节。</strong></p>
+<h6 id="zookeeperRegistry-doSubscribe"><a href="#zookeeperRegistry-doSubscribe" class="headerlink" title="zookeeperRegistry().doSubscribe()"></a>zookeeperRegistry().doSubscribe()</h6><p>–&gt;FailbackRegistry.notify</p>
+<pre><code>--&gt;doNotify(url, listener, urls);
+
+        --&gt;AbstractRegistry.notify</code></pre>
+<p>​                    –&gt;saveProperties(url);//把服务端的注册url信息更新到C:\Users\bobo.dubbo\dubbo-registry-192.168.48.117.cache<br>​                      –&gt;registryCacheExecutor.execute(new SaveProperties(version));//采用线程池来处理<br>​                        –&gt;listener.notify(categoryList)<br>以上的通知流程都是和服务发布的时候是一样的，直到进入</p>
+<h6 id="RegistryDirectory-notify"><a href="#RegistryDirectory-notify" class="headerlink" title="RegistryDirectory.notify"></a>RegistryDirectory.notify</h6><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">refreshInvoker(invokerUrls)<span class="comment">//刷新缓存中的invoker列表</span></span><br></pre></td></tr></table></figure>
+<p><strong>refreshInvoker的最终目的：刷新Map&lt;String, Invoker<T>&gt; urlInvokerMap 对象，这也就是服务发布和引用的时候通知的最大区别，服务发布的时候是没有刷新的。</strong></p>
+<p>ok，上面的所有代码就完成了scheemas标签信息到invoker的转换，下面就来将invoker到ref的转换过程——就是创建代理。</p>
+<h6 id="再回到createProxy"><a href="#再回到createProxy" class="headerlink" title="再回到createProxy()"></a>再回到createProxy()</h6><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 创建服务代理</span></span><br><span class="line"><span class="keyword">return</span> (T) proxyFactory.getProxy(invoker)</span><br></pre></td></tr></table></figure>
+<p>–&gt;ProxyFactory$Adpative.getProxy</p>
+<pre><code>--&gt;ExtensionLoader.getExtensionLoader(com.alibaba.dubbo.rpc.ProxyFactory.class).getExtension(&quot;javassist&quot;);
+  --&gt;StubProxyFactoryWrapper.getProxy
+    --&gt;proxyFactory.getProxy(invoker)
+     --&gt;AbstractProxyFactory.getProxy
+
+       --&gt;getProxy(invoker, interfaces)</code></pre>
+<h5 id="JavassistProxyFactory类"><a href="#JavassistProxyFactory类" class="headerlink" title="JavassistProxyFactory类"></a>JavassistProxyFactory类</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> &lt;T&gt; <span class="function">T <span class="title">getProxy</span><span class="params">(Invoker&lt;T&gt; invoker, Class&lt;?&gt;[] interfaces)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> (T) Proxy.getProxy(interfaces).newInstance(</span><br><span class="line">    <span class="keyword">new</span> InvokerInvocationHandler(invoker));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Proxy.getProxy(interfaces)//目前代理对象interface com.alibaba.dubbo.demo.DemoService, interface com.alibaba.dubbo.rpc.service.EchoService<br>InvokerInvocationHandler// 采用jdk自带的InvocationHandler，创建InvokerInvocationHandler对象。</p>
+<h5 id="最后最后，再来一张服务引用的总结图"><a href="#最后最后，再来一张服务引用的总结图" class="headerlink" title="最后最后，再来一张服务引用的总结图"></a>最后最后，再来一张服务引用的总结图</h5><p><img src="dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E6%9C%8D%E5%8A%A1%E5%BC%95%E7%94%A8-%E5%8E%9F%E7%90%86/%E6%9C%8D%E5%8A%A1%E5%BC%95%E7%94%A8%E6%B5%81%E7%A8%8B%E5%9B%BE.png" alt="服务引用流程图"></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/dubbo/" rel="tag"># dubbo</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/03/15/dubbo%E7%B3%BB%E5%88%97%E4%B9%8Bzookeeper%E8%AE%A2%E9%98%85%E8%8A%82%E7%82%B9/" rel="next" title="dubbo系列之zookeeper订阅节点">
+                <i class="fa fa-chevron-left"></i> dubbo系列之zookeeper订阅节点
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/03/23/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E9%9B%86%E7%BE%A4%E5%AE%B9%E9%94%99-directory%E7%9B%AE%E5%BD%95/" rel="prev" title="dubbo系列之集群容错-directory目录">
+                dubbo系列之集群容错-directory目录 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/cat.jpg"
+                alt="" />
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/%20%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">66</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">16</span>
+                  <span class="site-state-item-name">标签</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/yestermorrow" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BA%90%E7%A0%81%E6%9E%84%E6%88%90"><span class="nav-number">2.</span> <span class="nav-text">源码构成</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#DubboNamespaceHandler%E7%B1%BB"><span class="nav-number">2.0.1.</span> <span class="nav-text">DubboNamespaceHandler类</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#ReferenceBean%E7%B1%BB"><span class="nav-number">2.0.2.</span> <span class="nav-text">ReferenceBean类</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#ReferenceConfig%E7%B1%BB"><span class="nav-number">2.0.3.</span> <span class="nav-text">ReferenceConfig类</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#get"><span class="nav-number">2.0.3.1.</span> <span class="nav-text">get()</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#init"><span class="nav-number">2.0.3.2.</span> <span class="nav-text">init()</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#%E2%80%93-gt-createProxy"><span class="nav-number">2.0.3.3.</span> <span class="nav-text">–&gt;createProxy()</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#doRefer-%E2%80%94%E2%80%94%E5%88%9B%E5%BB%BA%E3%80%81%E8%AE%A2%E9%98%85%E8%8A%82%E7%82%B9"><span class="nav-number">2.0.3.4.</span> <span class="nav-text">doRefer()——创建、订阅节点</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#zookeeperRegistry-doSubscribe"><span class="nav-number">2.0.3.5.</span> <span class="nav-text">zookeeperRegistry().doSubscribe()</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#RegistryDirectory-notify"><span class="nav-number">2.0.3.6.</span> <span class="nav-text">RegistryDirectory.notify</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#%E5%86%8D%E5%9B%9E%E5%88%B0createProxy"><span class="nav-number">2.0.3.7.</span> <span class="nav-text">再回到createProxy()</span></a></li></ol></li><li class="nav-item nav-level-5"><a class="nav-link" href="#JavassistProxyFactory%E7%B1%BB"><span class="nav-number">2.0.4.</span> <span class="nav-text">JavassistProxyFactory类</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%9C%80%E5%90%8E%E6%9C%80%E5%90%8E%EF%BC%8C%E5%86%8D%E6%9D%A5%E4%B8%80%E5%BC%A0%E6%9C%8D%E5%8A%A1%E5%BC%95%E7%94%A8%E7%9A%84%E6%80%BB%E7%BB%93%E5%9B%BE"><span class="nav-number">2.0.5.</span> <span class="nav-text">最后最后，再来一张服务引用的总结图</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">yestermorrow</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

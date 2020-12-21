@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="dubbo," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="dubbo系列之集群容错-router路由规则简介ScriptRouter：脚本路由   MockInvokersSelector ：默认路由 ConditionRouter：条件路由，后台管理的路由配置都是条件路由。 本篇主要就是介绍ConditionRouter。 灰度发布灰度发布是指在黑与白之间，能够平滑过渡的一种发布方式。AB test就是一种灰度发布方式，让一部分用户继续用A，一部分用户">
+<meta property="og:type" content="article">
+<meta property="og:title" content="dubbo系列之集群容错-router路由规则">
+<meta property="og:url" content="http://yoursite.com/2018/03/24/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E9%9B%86%E7%BE%A4%E5%AE%B9%E9%94%99-router%E8%B7%AF%E7%94%B1%E8%A7%84%E5%88%99/index.html">
+<meta property="og:site_name" content="Yestermorrow">
+<meta property="og:description" content="dubbo系列之集群容错-router路由规则简介ScriptRouter：脚本路由   MockInvokersSelector ：默认路由 ConditionRouter：条件路由，后台管理的路由配置都是条件路由。 本篇主要就是介绍ConditionRouter。 灰度发布灰度发布是指在黑与白之间，能够平滑过渡的一种发布方式。AB test就是一种灰度发布方式，让一部分用户继续用A，一部分用户">
+<meta property="og:locale">
+<meta property="og:image" content="http://yoursite.com/2018/03/24/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E9%9B%86%E7%BE%A4%E5%AE%B9%E9%94%99-router%E8%B7%AF%E7%94%B1%E8%A7%84%E5%88%99/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E9%9B%86%E7%BE%A4%E5%AE%B9%E9%94%99-router%E8%B7%AF%E7%94%B1%E8%A7%84%E5%88%99/provider%E5%90%AF%E5%8A%A8.png">
+<meta property="og:image" content="http://yoursite.com/2018/03/24/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E9%9B%86%E7%BE%A4%E5%AE%B9%E9%94%99-router%E8%B7%AF%E7%94%B1%E8%A7%84%E5%88%99/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E9%9B%86%E7%BE%A4%E5%AE%B9%E9%94%99-router%E8%B7%AF%E7%94%B1%E8%A7%84%E5%88%99/1.png">
+<meta property="og:image" content="http://yoursite.com/2018/03/24/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E9%9B%86%E7%BE%A4%E5%AE%B9%E9%94%99-router%E8%B7%AF%E7%94%B1%E8%A7%84%E5%88%99/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E9%9B%86%E7%BE%A4%E5%AE%B9%E9%94%99-router%E8%B7%AF%E7%94%B1%E8%A7%84%E5%88%99/2.png">
+<meta property="og:image" content="http://yoursite.com/2018/03/24/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E9%9B%86%E7%BE%A4%E5%AE%B9%E9%94%99-router%E8%B7%AF%E7%94%B1%E8%A7%84%E5%88%99/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E9%9B%86%E7%BE%A4%E5%AE%B9%E9%94%99-router%E8%B7%AF%E7%94%B1%E8%A7%84%E5%88%99/3.png">
+<meta property="og:image" content="http://yoursite.com/2018/03/24/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E9%9B%86%E7%BE%A4%E5%AE%B9%E9%94%99-router%E8%B7%AF%E7%94%B1%E8%A7%84%E5%88%99/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E9%9B%86%E7%BE%A4%E5%AE%B9%E9%94%99-router%E8%B7%AF%E7%94%B1%E8%A7%84%E5%88%99/4.png">
+<meta property="og:image" content="http://yoursite.com/2018/03/24/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E9%9B%86%E7%BE%A4%E5%AE%B9%E9%94%99-router%E8%B7%AF%E7%94%B1%E8%A7%84%E5%88%99/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E9%9B%86%E7%BE%A4%E5%AE%B9%E9%94%99-router%E8%B7%AF%E7%94%B1%E8%A7%84%E5%88%99/%E8%B7%AF%E7%94%B1%E8%BF%87%E6%BB%A4%E6%B5%81%E7%A8%8B%E5%9B%BE.png">
+<meta property="article:published_time" content="2018-03-24T04:48:04.000Z">
+<meta property="article:modified_time" content="2018-08-28T13:53:05.000Z">
+<meta property="article:author" content="yestermorrow">
+<meta property="article:tag" content="dubbo">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2018/03/24/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E9%9B%86%E7%BE%A4%E5%AE%B9%E9%94%99-router%E8%B7%AF%E7%94%B1%E8%A7%84%E5%88%99/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E9%9B%86%E7%BE%A4%E5%AE%B9%E9%94%99-router%E8%B7%AF%E7%94%B1%E8%A7%84%E5%88%99/provider%E5%90%AF%E5%8A%A8.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/03/24/dubbo系列之集群容错-router路由规则/"/>
+
+
+
+
+
+  <title>dubbo系列之集群容错-router路由规则 | Yestermorrow</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 5.3.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Yestermorrow</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/%20" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/%20" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/03/24/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E9%9B%86%E7%BE%A4%E5%AE%B9%E9%94%99-router%E8%B7%AF%E7%94%B1%E8%A7%84%E5%88%99/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/cat.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Yestermorrow">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">dubbo系列之集群容错-router路由规则</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-03-24T12:48:04+08:00">
+                2018-03-24
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="dubbo系列之集群容错-router路由规则"><a href="#dubbo系列之集群容错-router路由规则" class="headerlink" title="dubbo系列之集群容错-router路由规则"></a>dubbo系列之集群容错-router路由规则</h1><h3 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h3><p>ScriptRouter：脚本路由  </p>
+<p>MockInvokersSelector ：默认路由</p>
+<p>ConditionRouter：条件路由，后台管理的路由配置都是条件路由。</p>
+<p>本篇主要就是介绍ConditionRouter。</p>
+<h5 id="灰度发布"><a href="#灰度发布" class="headerlink" title="灰度发布"></a>灰度发布</h5><p>灰度发布是指在黑与白之间，能够平滑过渡的一种发布方式。AB test就是一种灰度发布方式，让一部分用户继续用A，一部分用户开始用B，如果用户对B没有什么反对意见，那么逐步扩大范围，把所有用户都迁移到B上面来。灰度发布可以保证整体系统的稳定，在初始灰度的时候就可以发现、调整问题，以保证其影响度。</p>
+<h5 id="路由中灰度发布的例子"><a href="#路由中灰度发布的例子" class="headerlink" title="路由中灰度发布的例子"></a>路由中灰度发布的例子</h5><p>第一步：启动provider  192.168.56.2    192.168.56.3</p>
+<p><img src="dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E9%9B%86%E7%BE%A4%E5%AE%B9%E9%94%99-router%E8%B7%AF%E7%94%B1%E8%A7%84%E5%88%99/provider%E5%90%AF%E5%8A%A8.png" alt="provider启动"></p>
+<p>第二步：切断192.168.48.32访问流量(在dubbo Admin–路由规则里设置)，然后启动。</p>
+<p><img src="dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E9%9B%86%E7%BE%A4%E5%AE%B9%E9%94%99-router%E8%B7%AF%E7%94%B1%E8%A7%84%E5%88%99/1.png"></p>
+<p><img src="dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E9%9B%86%E7%BE%A4%E5%AE%B9%E9%94%99-router%E8%B7%AF%E7%94%B1%E8%A7%84%E5%88%99/2.png"></p>
+<p><img src="dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E9%9B%86%E7%BE%A4%E5%AE%B9%E9%94%99-router%E8%B7%AF%E7%94%B1%E8%A7%84%E5%88%99/3.png"></p>
+<p><img src="dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E9%9B%86%E7%BE%A4%E5%AE%B9%E9%94%99-router%E8%B7%AF%E7%94%B1%E8%A7%84%E5%88%99/4.png"></p>
+<p>第三步：192.168.48.32发布成功后，恢复 192.168.48.32的流量，</p>
+<p>第四步：切断192.168.100.38，继续发布 192.168.100.38（操作同上）</p>
+<p>这样整个灰度发布的过程就结束了。。。</p>
+<p>ok，看完上面的例子，我们可能会想问题，比如启动路由规则，触发了哪些动作？</p>
+<p>那就带着问题来看源码吧。</p>
+<h3 id="源码构成"><a href="#源码构成" class="headerlink" title="源码构成"></a>源码构成</h3><p>上面已经提到了ConditionRouter是条件路由，后台管理的路由配置都是条件路由。</p>
+<p>点击路由规则里面的启用按钮时，会触发RegistryDirectort类里面的notify方法</p>
+<h4 id="RegistryDirectort类"><a href="#RegistryDirectort类" class="headerlink" title="RegistryDirectort类"></a>RegistryDirectort类</h4><h5 id="notify"><a href="#notify" class="headerlink" title="notify()"></a>notify()</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title">notify</span><span class="params">(List&lt;URL&gt; urls)</span> </span>&#123;</span><br><span class="line">    <span class="comment">//......</span></span><br><span class="line">    <span class="comment">// routers</span></span><br><span class="line">    <span class="keyword">if</span> (routerUrls != <span class="keyword">null</span> &amp;&amp; routerUrls.size() &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        List&lt;Router&gt; routers = toRouters(routerUrls);</span><br><span class="line">        <span class="keyword">if</span> (routers != <span class="keyword">null</span>) &#123; <span class="comment">// null - do nothing</span></span><br><span class="line">            setRouters(routers);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    List&lt;Configurator&gt; localConfigurators = <span class="keyword">this</span>.configurators; <span class="comment">// local reference</span></span><br><span class="line">    <span class="comment">// 合并override参数</span></span><br><span class="line">    <span class="keyword">this</span>.overrideDirectoryUrl = directoryUrl;</span><br><span class="line">    <span class="keyword">if</span> (localConfigurators != <span class="keyword">null</span> &amp;&amp; localConfigurators.size() &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">for</span> (Configurator configurator : localConfigurators) &#123;</span><br><span class="line">            <span class="keyword">this</span>.overrideDirectoryUrl = configurator.configure(overrideDirectoryUrl);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// providers</span></span><br><span class="line">    refreshInvoker(invokerUrls);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="toRouter-——加入路由"><a href="#toRouter-——加入路由" class="headerlink" title="toRouter()——加入路由"></a>toRouter()——加入路由</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> List&lt;Router&gt; <span class="title">toRouters</span><span class="params">(List&lt;URL&gt; urls)</span> </span>&#123;</span><br><span class="line">    List&lt;Router&gt; routers = <span class="keyword">new</span> ArrayList&lt;Router&gt;();</span><br><span class="line">    <span class="keyword">if</span> (urls == <span class="keyword">null</span> || urls.size() &lt; <span class="number">1</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> routers;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (urls != <span class="keyword">null</span> &amp;&amp; urls.size() &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">for</span> (URL url : urls) &#123;</span><br><span class="line">            <span class="keyword">if</span> (Constants.EMPTY_PROTOCOL.equals(url.getProtocol())) &#123;</span><br><span class="line">                <span class="keyword">continue</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            String routerType = url.getParameter(Constants.ROUTER_KEY);</span><br><span class="line">            <span class="keyword">if</span> (routerType != <span class="keyword">null</span> &amp;&amp; routerType.length() &gt; <span class="number">0</span>) &#123;</span><br><span class="line">                url = url.setProtocol(routerType);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">            	<span class="comment">// 创建Router</span></span><br><span class="line">                Router router = routerFactory.getRouter(url);</span><br><span class="line">                <span class="keyword">if</span> (!routers.contains(router))</span><br><span class="line">                    routers.add(router);</span><br><span class="line">            &#125; <span class="keyword">catch</span> (Throwable t) &#123;</span><br><span class="line">                logger.error(<span class="string">&quot;convert router url to router error, url: &quot;</span> + url, t);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> routers;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这样路由就加进来了，又是怎么过滤的呢？</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">refreshInvoker</span><span class="params">(List&lt;URL&gt; invokerUrls)</span> </span>&#123;</span><br><span class="line">    	<span class="comment">// ......</span></span><br><span class="line">        Map&lt;String, Invoker&lt;T&gt;&gt; newUrlInvokerMap = toInvokers(invokerUrls);<span class="comment">// 将URL列表转成Invoker列表</span></span><br><span class="line">        Map&lt;String, List&lt;Invoker&lt;T&gt;&gt;&gt; newMethodInvokerMap = toMethodInvokers(newUrlInvokerMap); <span class="comment">// 换方法名映射Invoker列表</span></span><br><span class="line">        <span class="comment">// ......</span></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<h5 id="toMethodInvokers"><a href="#toMethodInvokers" class="headerlink" title="toMethodInvokers()"></a>toMethodInvokers()</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 将invokers列表转成与方法的映射关系</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> invokersMap Invoker列表</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@return</span> Invoker与方法的映射关系</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">private</span> Map&lt;String, List&lt;Invoker&lt;T&gt;&gt;&gt; toMethodInvokers(Map&lt;String, Invoker&lt;T&gt;&gt; invokersMap) &#123;</span><br><span class="line">    <span class="comment">// ......</span></span><br><span class="line">    newMethodInvokerMap.put(Constants.ANY_VALUE, invokersList);</span><br><span class="line">    <span class="keyword">if</span> (serviceMethods != <span class="keyword">null</span> &amp;&amp; serviceMethods.length &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">for</span> (String method : serviceMethods) &#123;</span><br><span class="line">            List&lt;Invoker&lt;T&gt;&gt; methodInvokers = newMethodInvokerMap.get(method);</span><br><span class="line">            <span class="keyword">if</span> (methodInvokers == <span class="keyword">null</span> || methodInvokers.size() == <span class="number">0</span>) &#123;</span><br><span class="line">                methodInvokers = invokersList;</span><br><span class="line">            &#125;</span><br><span class="line">            newMethodInvokerMap.put(method, route(methodInvokers, method));</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// ......</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>接下来的流程用一张图来展示</p>
+<p><img src="dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E9%9B%86%E7%BE%A4%E5%AE%B9%E9%94%99-router%E8%B7%AF%E7%94%B1%E8%A7%84%E5%88%99/%E8%B7%AF%E7%94%B1%E8%BF%87%E6%BB%A4%E6%B5%81%E7%A8%8B%E5%9B%BE.png" alt="路由过滤流程图"></p>
+<p>最后你筛选出来的结果，如果你禁用了192.168.56.2 那么最后的invokers就只有192.168.56.3。以上就是整个路由的过滤流程。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/dubbo/" rel="tag"># dubbo</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/03/23/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E9%9B%86%E7%BE%A4%E5%AE%B9%E9%94%99-directory%E7%9B%AE%E5%BD%95/" rel="next" title="dubbo系列之集群容错-directory目录">
+                <i class="fa fa-chevron-left"></i> dubbo系列之集群容错-directory目录
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/03/24/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E9%9B%86%E7%BE%A4%E5%AE%B9%E9%94%99-Cluster%E9%9B%86%E7%BE%A4/" rel="prev" title="dubbo系列之集群容错-Cluster集群">
+                dubbo系列之集群容错-Cluster集群 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/cat.jpg"
+                alt="" />
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/%20%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">66</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">16</span>
+                  <span class="site-state-item-name">标签</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/yestermorrow" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E9%9B%86%E7%BE%A4%E5%AE%B9%E9%94%99-router%E8%B7%AF%E7%94%B1%E8%A7%84%E5%88%99"><span class="nav-number">1.</span> <span class="nav-text">dubbo系列之集群容错-router路由规则</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AE%80%E4%BB%8B"><span class="nav-number">1.0.1.</span> <span class="nav-text">简介</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E7%81%B0%E5%BA%A6%E5%8F%91%E5%B8%83"><span class="nav-number">1.0.1.0.1.</span> <span class="nav-text">灰度发布</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E8%B7%AF%E7%94%B1%E4%B8%AD%E7%81%B0%E5%BA%A6%E5%8F%91%E5%B8%83%E7%9A%84%E4%BE%8B%E5%AD%90"><span class="nav-number">1.0.1.0.2.</span> <span class="nav-text">路由中灰度发布的例子</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BA%90%E7%A0%81%E6%9E%84%E6%88%90"><span class="nav-number">1.0.2.</span> <span class="nav-text">源码构成</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#RegistryDirectort%E7%B1%BB"><span class="nav-number">1.0.2.1.</span> <span class="nav-text">RegistryDirectort类</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#notify"><span class="nav-number">1.0.2.1.1.</span> <span class="nav-text">notify()</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#toRouter-%E2%80%94%E2%80%94%E5%8A%A0%E5%85%A5%E8%B7%AF%E7%94%B1"><span class="nav-number">1.0.2.1.2.</span> <span class="nav-text">toRouter()——加入路由</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#toMethodInvokers"><span class="nav-number">1.0.2.1.3.</span> <span class="nav-text">toMethodInvokers()</span></a></li></ol></li></ol></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">yestermorrow</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
