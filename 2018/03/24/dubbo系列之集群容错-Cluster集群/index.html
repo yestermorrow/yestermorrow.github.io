@@ -86,13 +86,13 @@
 <meta property="og:site_name" content="Yestermorrow">
 <meta property="og:description" content="dubbo系列之集群容错-Cluster集群简要cluster是用来干什么的？ cluster少Directory中的多个invoker伪装成一个invoker，来容错，调试失败重试。 源码构成Cluster接口123456@SPI(FailoverCluster.NAME)public interface Cluster &amp;#123;    @Adaptive    &lt;T&gt; Invo">
 <meta property="og:locale">
-<meta property="og:image" content="http://yoursite.com/2018/03/24/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E9%9B%86%E7%BE%A4%E5%AE%B9%E9%94%99-Cluster%E9%9B%86%E7%BE%A4/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E9%9B%86%E7%BE%A4%E5%AE%B9%E9%94%99-Cluster%E9%9B%86%E7%BE%A4/Cluster%E5%AE%9E%E7%8E%B0%E7%B1%BB.png">
+<meta property="og:image" content="http://yoursite.com/2018/03/24/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E9%9B%86%E7%BE%A4%E5%AE%B9%E9%94%99-Cluster%E9%9B%86%E7%BE%A4/Cluster%E5%AE%9E%E7%8E%B0%E7%B1%BB.png">
 <meta property="article:published_time" content="2018-03-24T04:48:57.000Z">
-<meta property="article:modified_time" content="2018-08-28T13:50:27.000Z">
+<meta property="article:modified_time" content="2020-12-22T04:28:43.887Z">
 <meta property="article:author" content="yestermorrow">
 <meta property="article:tag" content="dubbo">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://yoursite.com/2018/03/24/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E9%9B%86%E7%BE%A4%E5%AE%B9%E9%94%99-Cluster%E9%9B%86%E7%BE%A4/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E9%9B%86%E7%BE%A4%E5%AE%B9%E9%94%99-Cluster%E9%9B%86%E7%BE%A4/Cluster%E5%AE%9E%E7%8E%B0%E7%B1%BB.png">
+<meta name="twitter:image" content="http://yoursite.com/2018/03/24/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E9%9B%86%E7%BE%A4%E5%AE%B9%E9%94%99-Cluster%E9%9B%86%E7%BE%A4/Cluster%E5%AE%9E%E7%8E%B0%E7%B1%BB.png">
 
 
 
@@ -307,7 +307,7 @@
 <h3 id="源码构成"><a href="#源码构成" class="headerlink" title="源码构成"></a>源码构成</h3><h4 id="Cluster接口"><a href="#Cluster接口" class="headerlink" title="Cluster接口"></a>Cluster接口</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@SPI(FailoverCluster.NAME)</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Cluster</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Adaptive</span></span><br><span class="line">    &lt;T&gt; <span class="function">Invoker&lt;T&gt; <span class="title">join</span><span class="params">(Directory&lt;T&gt; directory)</span> <span class="keyword">throws</span> RpcException</span>;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>**@SPI(FailoverCluster.NAME)**代表失败转移，当出现失败的时候，重新重试其他服务器。</p>
 <p>看一下Cluster的继承体系图，共</p>
-<p><img src="dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E9%9B%86%E7%BE%A4%E5%AE%B9%E9%94%99-Cluster%E9%9B%86%E7%BE%A4/Cluster%E5%AE%9E%E7%8E%B0%E7%B1%BB.png" alt="Cluster实现类"></p>
+<p><img src="/2018/03/24/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E9%9B%86%E7%BE%A4%E5%AE%B9%E9%94%99-Cluster%E9%9B%86%E7%BE%A4/Cluster%E5%AE%9E%E7%8E%B0%E7%B1%BB.png" alt="Cluster实现类"></p>
 <p>除MockClusterWrapper外共八个实现类</p>
 <h5 id="FailoverCluster："><a href="#FailoverCluster：" class="headerlink" title="FailoverCluster："></a>FailoverCluster：</h5><p>（默认）失败转移，当出现失败，重试其它服务器，通常用于读操作，但重试会带来更长延迟。 </p>
 <h5 id="FailfastCluster："><a href="#FailfastCluster：" class="headerlink" title="FailfastCluster："></a>FailfastCluster：</h5><p>快速失败，只发起一次调用，失败立即报错，通常用于非幂等性的写操作。</p>

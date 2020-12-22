@@ -86,14 +86,14 @@
 <meta property="og:site_name" content="Yestermorrow">
 <meta property="og:description" content="聊聊类加载机制类加载机制虚拟机把描述类的数据从Class文件加载到内存，并对数据进行校验、转换解析和初始化，最终形成可以被虚拟机直接使用的Java类型，这就是虚拟机的类加载机制。 1：什么是类加载器类加载器负责加载java类到java虚拟机的内存空间中，类通常是按需加载，即第一次使用该类时才加载。由于有了类加载器，java运行时系统不需要知道文件与文件系统。负责读取 Java 字节代码，并转换成j">
 <meta property="og:locale">
-<meta property="og:image" content="http://yoursite.com/2019/03/21/%E8%81%8A%E8%81%8A%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/%E8%81%8A%E8%81%8AJVM/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%99%A8%E5%8F%8C%E4%BA%B2%E5%A7%94%E6%B4%BE%E6%A8%A1%E5%9E%8B.png">
-<meta property="og:image" content="http://yoursite.com/2019/03/21/%E8%81%8A%E8%81%8A%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/%E8%81%8A%E8%81%8A%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E8%BF%87%E7%A8%8B.png">
+<meta property="og:image" content="http://yoursite.com/2019/03/21/%E8%81%8A%E8%81%8A%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%99%A8%E5%8F%8C%E4%BA%B2%E5%A7%94%E6%B4%BE%E6%A8%A1%E5%9E%8B.png">
+<meta property="og:image" content="http://yoursite.com/2019/03/21/%E8%81%8A%E8%81%8A%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E8%BF%87%E7%A8%8B.png">
 <meta property="article:published_time" content="2019-03-21T02:26:31.000Z">
-<meta property="article:modified_time" content="2019-03-25T03:52:32.000Z">
+<meta property="article:modified_time" content="2020-12-22T04:15:15.164Z">
 <meta property="article:author" content="yestermorrow">
 <meta property="article:tag" content="侃侃而谈">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://yoursite.com/2019/03/21/%E8%81%8A%E8%81%8A%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/%E8%81%8A%E8%81%8AJVM/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%99%A8%E5%8F%8C%E4%BA%B2%E5%A7%94%E6%B4%BE%E6%A8%A1%E5%9E%8B.png">
+<meta name="twitter:image" content="http://yoursite.com/2019/03/21/%E8%81%8A%E8%81%8A%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%99%A8%E5%8F%8C%E4%BA%B2%E5%A7%94%E6%B4%BE%E6%A8%A1%E5%9E%8B.png">
 
 
 
@@ -305,11 +305,11 @@
       
         <h1 id="聊聊类加载机制"><a href="#聊聊类加载机制" class="headerlink" title="聊聊类加载机制"></a>聊聊类加载机制</h1><h4 id="类加载机制"><a href="#类加载机制" class="headerlink" title="类加载机制"></a>类加载机制</h4><p>虚拟机把描述类的数据从Class文件加载到内存，并对数据进行校验、转换解析和初始化，最终形成可以被虚拟机直接使用的Java类型，这就是虚拟机的类加载机制。</p>
 <h4 id="1：什么是类加载器"><a href="#1：什么是类加载器" class="headerlink" title="1：什么是类加载器"></a>1：什么是类加载器</h4><p>类加载器负责加载java类到java虚拟机的内存空间中，类通常是按需加载，即第一次使用该类时才加载。由于有了类加载器，java运行时系统不需要知道文件与文件系统。负责读取 Java 字节代码，并转换成<code>java.lang.Class</code>类的一个实例。</p>
-<h4 id="2：类加载器种类"><a href="#2：类加载器种类" class="headerlink" title="2：类加载器种类"></a>2：类加载器种类</h4><p>Bootstrap ClassLoader 启动类加载器：这个类加载器负责放在<JAVA_HOME>\lib目录中的，或者被-Xbootclasspath参数所指定的路径中的，并且是虚拟机识别的类库。用户无法直接使用。</p>
-<p>Extension ClassLoader 扩展类加载器：这个类加载器由sun.misc.Launcher$AppClassLoader实现。它负责<JAVA_HOME>\lib\ext目录中的，或者被java.ext.dirs系统变量所指定的路径中的所有类库。用户可以直接使用。</p>
+<h4 id="2：类加载器种类"><a href="#2：类加载器种类" class="headerlink" title="2：类加载器种类"></a>2：类加载器种类</h4><p>Bootstrap ClassLoader 启动类加载器：这个类加载器负责放在<JAVA_HOME>\lib目录中的，或者被-Xbootclasspath参数所指定的路径中的，并且是虚拟机识别的类库。用户无法直接使用。</JAVA_HOME></p>
+<p>Extension ClassLoader 扩展类加载器：这个类加载器由sun.misc.Launcher$AppClassLoader实现。它负责<JAVA_HOME>\lib\ext目录中的，或者被java.ext.dirs系统变量所指定的路径中的所有类库。用户可以直接使用。</JAVA_HOME></p>
 <p>Application ClassLoader 应用程序类加载器：这个类由sun.misc.Launcher$AppClassLoader实现。是ClassLoader中getSystemClassLoader()方法的返回值。它负责用户路径（ClassPath）所指定的类库。用户可以直接使用。如果用户没有自己定义类加载器，默认使用这个。</p>
 <p>User ClassLoader 自定义加载器：用户自己定义的类加载器。</p>
-<h4 id="3：双亲委派模型"><a href="#3：双亲委派模型" class="headerlink" title="3：双亲委派模型"></a>3：双亲委派模型</h4><p><img src="%E8%81%8A%E8%81%8AJVM/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%99%A8%E5%8F%8C%E4%BA%B2%E5%A7%94%E6%B4%BE%E6%A8%A1%E5%9E%8B.png" alt="类加载器双亲委派模型"></p>
+<h4 id="3：双亲委派模型"><a href="#3：双亲委派模型" class="headerlink" title="3：双亲委派模型"></a>3：双亲委派模型</h4><p><img src="/2019/03/21/%E8%81%8A%E8%81%8A%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%99%A8%E5%8F%8C%E4%BA%B2%E5%A7%94%E6%B4%BE%E6%A8%A1%E5%9E%8B.png" alt="类加载器双亲委派模型"></p>
 <p>双亲委派模型要求除了顶层的启动类加载器外，其余的类加载器都应当有自己的父类加载器。</p>
 <p>双亲委派模型的工作过程是：</p>
 <ul>
@@ -319,7 +319,7 @@
 </ul>
 <h4 id="4：类加载过程，何时触发初始化"><a href="#4：类加载过程，何时触发初始化" class="headerlink" title="4：类加载过程，何时触发初始化"></a>4：类加载过程，何时触发初始化</h4><p>类加载分为三个步骤：<strong>加载</strong>，<strong>连接</strong>，<strong>初始化</strong>；</p>
 <p>如下图 , 是一个类从加载到使用及卸载的全部生命周期</p>
-<p><img src="%E8%81%8A%E8%81%8A%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E8%BF%87%E7%A8%8B.png" alt="类加载过程"></p>
+<p><img src="/2019/03/21/%E8%81%8A%E8%81%8A%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E8%BF%87%E7%A8%8B.png" alt="类加载过程"></p>
 <p><strong>加载</strong></p>
 <p>在加载阶段，虚拟机需要完成以下3件事情：</p>
 <p>1）通过一个类的全限定名来获取定义此类的二进制字节流</p>

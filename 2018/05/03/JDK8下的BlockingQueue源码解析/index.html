@@ -86,13 +86,13 @@
 <meta property="og:site_name" content="Yestermorrow">
 <meta property="og:description" content="JDK8下的BlockingQueue源码解析简要BlockingQueue是一个阻塞队列，阻塞队列能够阻塞当前试图从队列中获取元素的线程，而非阻塞队列不会。因此在面对类似生产者-消费者的模型时，使用非阻塞队列就必须额外地实现同步策略以及线程间唤醒策略，这个实现起来就非常麻烦。但是有了阻塞队列就不一样了，它会对当前线程产生阻塞，比如一个线程从一个空的阻塞队列中取元素，此时线程会被阻塞知道阻塞队列中">
 <meta property="og:locale">
-<meta property="og:image" content="http://yoursite.com/2018/05/03/JDK8%E4%B8%8B%E7%9A%84BlockingQueue%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/JDK8%E4%B8%8B%E7%9A%84BlockingQueue%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/BlockingQueue%E5%AE%9E%E7%8E%B0%E7%B1%BB.jpg">
+<meta property="og:image" content="http://yoursite.com/2018/05/03/JDK8%E4%B8%8B%E7%9A%84BlockingQueue%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/BlockingQueue%E5%AE%9E%E7%8E%B0%E7%B1%BB.jpg">
 <meta property="article:published_time" content="2018-05-03T02:31:12.000Z">
-<meta property="article:modified_time" content="2018-09-08T13:54:02.000Z">
+<meta property="article:modified_time" content="2020-12-22T04:16:14.017Z">
 <meta property="article:author" content="yestermorrow">
 <meta property="article:tag" content="并发">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://yoursite.com/2018/05/03/JDK8%E4%B8%8B%E7%9A%84BlockingQueue%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/JDK8%E4%B8%8B%E7%9A%84BlockingQueue%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/BlockingQueue%E5%AE%9E%E7%8E%B0%E7%B1%BB.jpg">
+<meta name="twitter:image" content="http://yoursite.com/2018/05/03/JDK8%E4%B8%8B%E7%9A%84BlockingQueue%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/BlockingQueue%E5%AE%9E%E7%8E%B0%E7%B1%BB.jpg">
 
 
 
@@ -303,7 +303,7 @@
 
       
         <h1 id="JDK8下的BlockingQueue源码解析"><a href="#JDK8下的BlockingQueue源码解析" class="headerlink" title="JDK8下的BlockingQueue源码解析"></a>JDK8下的BlockingQueue源码解析</h1><h3 id="简要"><a href="#简要" class="headerlink" title="简要"></a>简要</h3><p>BlockingQueue是一个阻塞队列，阻塞队列能够阻塞当前试图从队列中获取元素的线程，而非阻塞队列不会。因此在面对类似生产者-消费者的模型时，使用非阻塞队列就必须额外地实现同步策略以及线程间唤醒策略，这个实现起来就非常麻烦。但是有了阻塞队列就不一样了，它会对当前线程产生阻塞，比如一个线程从一个空的阻塞队列中取元素，此时线程会被阻塞知道阻塞队列中有了元素，当队列中有元素后，被阻塞的线程会自动被唤醒（不需要我们编写代码去唤醒）。这样提供了极大的方便性。</p>
-<h4 id="BlockingQueue的实现类"><a href="#BlockingQueue的实现类" class="headerlink" title="BlockingQueue的实现类"></a>BlockingQueue的实现类<img src="JDK8%E4%B8%8B%E7%9A%84BlockingQueue%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/BlockingQueue%E5%AE%9E%E7%8E%B0%E7%B1%BB.jpg" alt="BlockingQueue实现类"></h4><p>ArrayBlockingQueue：基于数组实现的一个阻塞队列，在创建ArrayBlockingQueue对象时必须制定容量带下。并且可以指定公平性与非公平性，默认情况下为非公平性，即不保证等待时间最长的线程最优先能够访问队列。</p>
+<h4 id="BlockingQueue的实现类"><a href="#BlockingQueue的实现类" class="headerlink" title="BlockingQueue的实现类"></a>BlockingQueue的实现类<img src="/2018/05/03/JDK8%E4%B8%8B%E7%9A%84BlockingQueue%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/BlockingQueue%E5%AE%9E%E7%8E%B0%E7%B1%BB.jpg" alt="BlockingQueue实现类"></h4><p>ArrayBlockingQueue：基于数组实现的一个阻塞队列，在创建ArrayBlockingQueue对象时必须制定容量带下。并且可以指定公平性与非公平性，默认情况下为非公平性，即不保证等待时间最长的线程最优先能够访问队列。</p>
 <p>LinkedBlockingQueue：基于链表实现的一个阻塞队列，在创建LinkedBlockingQueue对象时如果不指定容量大小，则默认大小为Integer.MAX_VALUE。 </p>
 <p>DelayQueue：基于PriorityBlockingQueue实现的延迟队列，是一个无界的阻塞队列，用于放置实现了Delayed接口的对象，其中的对象只能在其到期时才能从队列中取走。因此向队列中插入时永远不会阻塞，获取时才有可能被阻塞。</p>
 <p>DelayedWorkQueue：该队列为ScheduledThreadPoolExecutor中的静态内部类，ScheduledThreadPoolExecutor便是通过该队列使得队列中的元素按一定顺序排列从而时延迟任务和周期性任务得以顺利执行。 </p>

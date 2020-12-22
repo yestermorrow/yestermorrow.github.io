@@ -86,14 +86,14 @@
 <meta property="og:site_name" content="Yestermorrow">
 <meta property="og:description" content="dubbo系列之zookeeper连接简介dubbo和zookeeper是啥关系呢？打个比方：dubbo就是动物园的动物，zookeeper就是动物园，我们把很多不同的dubbo（动物）放到zookeeper（动物园中）提供给我们游客进行观赏。搞清楚了dubbo和zookeeper的关系，接下来我们看一下dubbo源码中是如何使用zookeeper的吧。  源码构成RegistryFactory类">
 <meta property="og:locale">
-<meta property="og:image" content="http://yoursite.com/2018/03/12/dubbo%E7%B3%BB%E5%88%97%E4%B9%8Bzookeeper%E8%BF%9E%E6%8E%A5/dubbo%E7%B3%BB%E5%88%97%E4%B9%8Bzookeeper%E8%BF%9E%E6%8E%A5/%E5%88%9B%E5%BB%BAZK%E8%BF%9E%E6%8E%A5.png">
-<meta property="og:image" content="http://yoursite.com/2018/03/12/dubbo%E7%B3%BB%E5%88%97%E4%B9%8Bzookeeper%E8%BF%9E%E6%8E%A5/dubbo%E7%B3%BB%E5%88%97%E4%B9%8Bzookeeper%E8%BF%9E%E6%8E%A5/zookeeperTransporter%E7%BB%A7%E6%89%BF%E4%BD%93%E7%B3%BB%E5%9B%BE.png">
+<meta property="og:image" content="http://yoursite.com/2018/03/12/dubbo%E7%B3%BB%E5%88%97%E4%B9%8Bzookeeper%E8%BF%9E%E6%8E%A5/%E5%88%9B%E5%BB%BAZK%E8%BF%9E%E6%8E%A5.png">
+<meta property="og:image" content="http://yoursite.com/2018/03/12/dubbo%E7%B3%BB%E5%88%97%E4%B9%8Bzookeeper%E8%BF%9E%E6%8E%A5/zookeeperTransporter%E7%BB%A7%E6%89%BF%E4%BD%93%E7%B3%BB%E5%9B%BE.png">
 <meta property="article:published_time" content="2018-03-12T11:20:47.000Z">
-<meta property="article:modified_time" content="2018-08-28T14:05:44.000Z">
+<meta property="article:modified_time" content="2020-12-22T04:18:18.876Z">
 <meta property="article:author" content="yestermorrow">
 <meta property="article:tag" content="zookeepeer">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://yoursite.com/2018/03/12/dubbo%E7%B3%BB%E5%88%97%E4%B9%8Bzookeeper%E8%BF%9E%E6%8E%A5/dubbo%E7%B3%BB%E5%88%97%E4%B9%8Bzookeeper%E8%BF%9E%E6%8E%A5/%E5%88%9B%E5%BB%BAZK%E8%BF%9E%E6%8E%A5.png">
+<meta name="twitter:image" content="http://yoursite.com/2018/03/12/dubbo%E7%B3%BB%E5%88%97%E4%B9%8Bzookeeper%E8%BF%9E%E6%8E%A5/%E5%88%9B%E5%BB%BAZK%E8%BF%9E%E6%8E%A5.png">
 
 
 
@@ -306,7 +306,7 @@
         <h1 id="dubbo系列之zookeeper连接"><a href="#dubbo系列之zookeeper连接" class="headerlink" title="dubbo系列之zookeeper连接"></a>dubbo系列之zookeeper连接</h1><h3 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h3><p>dubbo和zookeeper是啥关系呢？打个比方：dubbo就是动物园的动物，zookeeper就是动物园，我们把很多不同的dubbo（动物）放到zookeeper（动物园中）提供给我们游客进行观赏。搞清楚了dubbo和zookeeper的关系，接下来我们看一下dubbo源码中是如何使用zookeeper的吧。 </p>
 <h3 id="源码构成"><a href="#源码构成" class="headerlink" title="源码构成"></a>源码构成</h3><h4 id="RegistryFactory类"><a href="#RegistryFactory类" class="headerlink" title="RegistryFactory类"></a>RegistryFactory类</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">final</span> Registry registry = getRegistry(originInvoker);<span class="comment">//创建ZK连接</span></span><br></pre></td></tr></table></figure>
 <p>在RegistryFactory类中的export()方法中的上面那段代码，就是用于ZK连接，debug进去看看前，先看看他内部的时序图。</p>
-<p><img src="dubbo%E7%B3%BB%E5%88%97%E4%B9%8Bzookeeper%E8%BF%9E%E6%8E%A5/%E5%88%9B%E5%BB%BAZK%E8%BF%9E%E6%8E%A5.png" alt="创建ZK连接"></p>
+<p><img src="/2018/03/12/dubbo%E7%B3%BB%E5%88%97%E4%B9%8Bzookeeper%E8%BF%9E%E6%8E%A5/%E5%88%9B%E5%BB%BAZK%E8%BF%9E%E6%8E%A5.png" alt="创建ZK连接"></p>
 <p>registryFactory.getRegistry(registryUrl)–&gt;ExtensionLoader.getExtensionLoader(RegistryFactory.class).getExtension(“zookeeper”)        –&gt;extension.getRegistry(arg0)</p>
 <pre><code>                  --&gt;AbstractRegistryFactory.getRegistry//创建一个注册中心，存储在REGISTRIES</code></pre>
 <p>​                        –&gt;createRegistry(url)<br>​                          –&gt;new ZookeeperRegistry(url, zookeeperTransporter)<br>​                            –&gt;AbstractRegistry</p>
@@ -323,7 +323,7 @@
 <p>ZookeeperTransporter</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@SPI(&quot;zkclient&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">ZookeeperTransporter</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Adaptive(&#123;Constants.CLIENT_KEY, Constants.TRANSPORTER_KEY&#125;)</span></span><br><span class="line">    <span class="function">ZookeeperClient <span class="title">connect</span><span class="params">(URL url)</span></span>;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>看一下<code>zookeeperTransporter</code>的类图和继承体系图</p>
-<p><img src="dubbo%E7%B3%BB%E5%88%97%E4%B9%8Bzookeeper%E8%BF%9E%E6%8E%A5/zookeeperTransporter%E7%BB%A7%E6%89%BF%E4%BD%93%E7%B3%BB%E5%9B%BE.png" alt="zookeeperTransporter继承体系图"></p>
+<p><img src="/2018/03/12/dubbo%E7%B3%BB%E5%88%97%E4%B9%8Bzookeeper%E8%BF%9E%E6%8E%A5/zookeeperTransporter%E7%BB%A7%E6%89%BF%E4%BD%93%E7%B3%BB%E5%9B%BE.png" alt="zookeeperTransporter继承体系图"></p>
 <p>问：zookeeper的java客户端你使用过哪些?</p>
 <p>从继承体系图我们就只有,zookeeper是支持<code>ZkClient</code>和<code>Curator</code>两种java客户端(其实就类似jedis是redis的java客户端一样),同时<code>@SPI(&quot;zkclient&quot;)</code>这里就可以看出它默认是用<code>ZkClient</code>的。</p>
 <p>这样，zkClient = zookeeperTransporter.connect(url);也就走完了。接着看，接着重试机制。</p>

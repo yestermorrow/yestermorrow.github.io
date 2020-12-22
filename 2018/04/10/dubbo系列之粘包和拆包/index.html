@@ -86,13 +86,13 @@
 <meta property="og:site_name" content="Yestermorrow">
 <meta property="og:description" content="前言其实在前面几篇网络编程的文章里面，关于粘包和拆包已经讲的差不多了，由于本人这周五准备组内分享——dubbo的粘包和拆包，这篇博客就把dubbo处理粘包和拆包的流程梳理总结一下。 什么是粘包和拆包  TCP粘包拆包发生的原因 1.应用程序write写入的字节大小大于套接口发送缓冲区大小 2.进行MSS大小的TCP分段 3.以太网帧的payload(有效数据)大于MTU进行IP分片 以往业界时如何">
 <meta property="og:locale">
-<meta property="og:image" content="http://yoursite.com/2018/04/10/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E7%B2%98%E5%8C%85%E5%92%8C%E6%8B%86%E5%8C%85/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E7%B2%98%E5%8C%85%E5%92%8C%E6%8B%86%E5%8C%85/%E7%B2%98%E5%8C%85%E5%92%8C%E6%8B%86%E5%8C%85.png">
+<meta property="og:image" content="http://yoursite.com/2018/04/10/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E7%B2%98%E5%8C%85%E5%92%8C%E6%8B%86%E5%8C%85/%E7%B2%98%E5%8C%85%E5%92%8C%E6%8B%86%E5%8C%85.png">
 <meta property="article:published_time" content="2018-04-10T11:27:15.000Z">
-<meta property="article:modified_time" content="2018-08-28T14:01:48.000Z">
+<meta property="article:modified_time" content="2020-12-22T04:18:55.903Z">
 <meta property="article:author" content="yestermorrow">
 <meta property="article:tag" content="dubbo">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://yoursite.com/2018/04/10/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E7%B2%98%E5%8C%85%E5%92%8C%E6%8B%86%E5%8C%85/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E7%B2%98%E5%8C%85%E5%92%8C%E6%8B%86%E5%8C%85/%E7%B2%98%E5%8C%85%E5%92%8C%E6%8B%86%E5%8C%85.png">
+<meta name="twitter:image" content="http://yoursite.com/2018/04/10/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E7%B2%98%E5%8C%85%E5%92%8C%E6%8B%86%E5%8C%85/%E7%B2%98%E5%8C%85%E5%92%8C%E6%8B%86%E5%8C%85.png">
 
 
 
@@ -304,7 +304,7 @@
       
         <h4 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h4><p>其实在前面几篇网络编程的文章里面，关于粘包和拆包已经讲的差不多了，由于本人这周五准备组内分享——dubbo的粘包和拆包，这篇博客就把dubbo处理粘包和拆包的流程梳理总结一下。</p>
 <p><strong>什么是粘包和拆包</strong></p>
-<p><img src="dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E7%B2%98%E5%8C%85%E5%92%8C%E6%8B%86%E5%8C%85/%E7%B2%98%E5%8C%85%E5%92%8C%E6%8B%86%E5%8C%85.png" alt="粘包和拆包"></p>
+<p><img src="/2018/04/10/dubbo%E7%B3%BB%E5%88%97%E4%B9%8B%E7%B2%98%E5%8C%85%E5%92%8C%E6%8B%86%E5%8C%85/%E7%B2%98%E5%8C%85%E5%92%8C%E6%8B%86%E5%8C%85.png" alt="粘包和拆包"></p>
 <p><strong>TCP粘包拆包发生的原因</strong></p>
 <p>1.应用程序write写入的字节大小大于套接口发送缓冲区大小</p>
 <p>2.进行MSS大小的TCP分段</p>
