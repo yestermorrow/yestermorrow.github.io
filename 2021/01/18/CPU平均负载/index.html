@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="性能," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="CPU平均负载命令行输入uptime命令 12# uptime 09:14:44 up 14 days, 21:31,  1 user,  load average: 0.06, 0.04, 0.05 每列输出的含义 123409:14:44 							&#x2F;&#x2F;当前时间up 14 days, 21:31					&#x2F;&#x2F;系统运行时间1 user								&#x2F;&#x2F;正在登录用户数load average">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CPU平均负载">
+<meta property="og:url" content="http://yoursite.com/2021/01/18/CPU%E5%B9%B3%E5%9D%87%E8%B4%9F%E8%BD%BD/index.html">
+<meta property="og:site_name" content="Yestermorrow">
+<meta property="og:description" content="CPU平均负载命令行输入uptime命令 12# uptime 09:14:44 up 14 days, 21:31,  1 user,  load average: 0.06, 0.04, 0.05 每列输出的含义 123409:14:44 							&#x2F;&#x2F;当前时间up 14 days, 21:31					&#x2F;&#x2F;系统运行时间1 user								&#x2F;&#x2F;正在登录用户数load average">
+<meta property="og:locale">
+<meta property="article:published_time" content="2021-01-18T08:52:04.000Z">
+<meta property="article:modified_time" content="2021-01-18T08:52:34.234Z">
+<meta property="article:author" content="yestermorrow">
+<meta property="article:tag" content="性能">
+<meta name="twitter:card" content="summary">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2021/01/18/CPU平均负载/"/>
+
+
+
+
+
+  <title>CPU平均负载 | Yestermorrow</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 5.3.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Yestermorrow</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/01/18/CPU%E5%B9%B3%E5%9D%87%E8%B4%9F%E8%BD%BD/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/cat.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Yestermorrow">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">CPU平均负载</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-01-18T16:52:04+08:00">
+                2021-01-18
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="CPU平均负载"><a href="#CPU平均负载" class="headerlink" title="CPU平均负载"></a>CPU平均负载</h1><p>命令行输入uptime命令</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> uptime</span></span><br><span class="line"> 09:14:44 up 14 days, 21:31,  1 user,  load average: 0.06, 0.04, 0.05</span><br></pre></td></tr></table></figure>
+<p>每列输出的含义</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">09:14:44 							//当前时间</span><br><span class="line">up 14 days, 21:31					//系统运行时间</span><br><span class="line">1 user								//正在登录用户数</span><br><span class="line">load average: 0.06, 0.04, 0.05		//1min、5min、15min的平均负载</span><br></pre></td></tr></table></figure>
+<h3 id="平均负载"><a href="#平均负载" class="headerlink" title="平均负载"></a>平均负载</h3><p>含义：平均负载是指单位时间内，系统处于<strong>可运行状态</strong>和<strong>不可中断状态</strong>的平均进程数，也就是平均活跃进程数，它和CPU使用率没有直接关系。</p>
+<p><strong>可运行状态</strong>：是指正在使用 CPU 或者正在等待 CPU 的进程，也就是我们常用 ps 命令看到的，处于 R 状态（Running 或 Runnable）的进程。</p>
+<p><strong>不可中断状态</strong>：是指正处于内核态关键流程中的进程，并且这些流程是不可打断的，比如最常见的是等待硬件设备的 I/O 响应，也就是我们在 ps 命令中看到的 D 状态（Uninterruptible Sleep，也称为 Disk Sleep）的进程。</p>
+<p>比如，当一个进程向磁盘读写数据时，为了保证数据的一致性，在得到磁盘回复前，它是不能被其他进程或者中断打断的，这个时候的进程就处于不可中断状态。如果此时的进程被打断了，就容易出现磁盘数据与进程数据不一致的问题。所以，<strong>不可中断状态实际上是系统对进程和硬件设备的一种保护机制。</strong></p>
+<p>因此，你可以简单理解为，平均负载其实就是平均活跃进程数。平均活跃进程数，直观上的理解就是单位时间内的活跃进程数，但它实际上是活跃进程数的指数衰减平均值。这个“指数衰减平均”的详细含义你不用计较，这只是系统的一种更快速的计算方式，你把它直接当成活跃进程数的平均值也没问题。</p>
+<p>既然平均的是活跃进程数，那么最理想的，就是每个 CPU 上都刚好运行着一个进程，这样每个 CPU 都得到了充分利用。比如当平均负载为 2 时，意味着什么呢？</p>
+<ul>
+<li>在只有 2 个 CPU 的系统上，意味着所有的 CPU 都刚好被完全占用。</li>
+<li>在 4 个 CPU 的系统上，意味着 CPU 有 50% 的空闲。</li>
+<li>而在只有 1 个 CPU 的系统中，则意味着有一半的进程竞争不到 CPU。</li>
+</ul>
+<h4 id="平均负载为多少时合理"><a href="#平均负载为多少时合理" class="headerlink" title="平均负载为多少时合理"></a>平均负载为多少时合理</h4><p>首先你要知道系统有几个 CPU，这可以通过 top 命令或者从文件 /proc/cpuinfo 中读取，比如：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">  grep <span class="string">&#x27;model name&#x27;</span> /proc/cpuinfo | wc -l</span></span><br><span class="line">20</span><br></pre></td></tr></table></figure>
+<p>有了 CPU 个数，我们就可以判断出，当平均负载比 CPU 个数还大的时候，系统已经出现了过载。</p>
+<p>平均负载有三个数值，到底该参考哪一个呢？实际上，都要看。三个不同时间间隔的平均值，其实给我们提供了，分析系统负载趋势的数据来源，让我们能更全面、更立体地理解目前的负载状况。</p>
+<ul>
+<li>如果 1 分钟、5 分钟、15 分钟的三个值基本相同，或者相差不大，那就说明系统负载很平稳。</li>
+<li>如果 1 分钟的值远小于 15 分钟的值，就说明系统最近 1 分钟的负载在减少，而过去 15 分钟内却有很大的负载。</li>
+<li>如果 1 分钟的值远大于 15 分钟的值，就说明最近 1 分钟的负载在增加，这种增加有可能只是临时性的，也有可能还会持续增加下去，所以就需要持续观察。一旦 1 分钟的平均负载接近或超过了 CPU 的个数，就意味着系统正在发生过载的问题，这时就得分析调查是哪里导致的问题，并要想办法优化了。</li>
+</ul>
+<p>在实际生产环境中，平均负载多高时，需要我们重点关注呢？</p>
+<p><strong>当平均负载高于 CPU 数量 70% 的时候</strong>，你就应该分析排查负载高的问题了。一旦负载过高，就可能导致进程响应变慢，进而影响服务的正常功能。</p>
+<p>但 70% 这个数字并不是绝对的，最推荐的方法，还是把系统的平均负载监控起来，然后根据更多的历史数据，判断负载的变化趋势。当发现负载有明显升高趋势时，比如说负载翻倍了，你再去做分析和调查。</p>
+<h4 id="平均负载与CPU使用率"><a href="#平均负载与CPU使用率" class="headerlink" title="平均负载与CPU使用率"></a>平均负载与CPU使用率</h4><p>可能你会疑惑，既然平均负载代表的是活跃进程数，那平均负载高了，不就意味着CPU使用率高吗？</p>
+<p>我们还是要回到平均负载的含义上来，平均负载是指单位时间内，处于可运行状态和不可中断状态的进程数。所以，它不仅包括了<strong>正在使用CPU</strong>的进程，还包括<strong>等待CPU</strong>和<strong>等待IO</strong>的进程。</p>
+<p>而CPU使用率，是单位时间内CPU繁忙情况的统计，跟平均负载并不一定完全对应。比如：</p>
+<ul>
+<li>CPU 密集型进程，使用大量 CPU 会导致平均负载升高，此时这两者是一致的；</li>
+<li>I/O 密集型进程，等待 I/O 也会导致平均负载升高，但 CPU 使用率不一定很高；</li>
+<li>大量等待 CPU 的进程调度也会导致平均负载升高，此时的 CPU 使用率也会比较高。</li>
+</ul>
+<h4 id="平均负载案例分析"><a href="#平均负载案例分析" class="headerlink" title="平均负载案例分析"></a>平均负载案例分析</h4><p>案例环境如下：</p>
+<p>​    机器配置：20 CPU，32GB 内存。</p>
+<p>uptime命令，看一下测试前的平均负载情况：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> uptime</span></span><br><span class="line"> 11:35:53 up 14 days, 23:52,  3 users,  load average: 0.04, 0.08, 0.06</span><br></pre></td></tr></table></figure>
+<h5 id="场景一：CPU密集型进程"><a href="#场景一：CPU密集型进程" class="headerlink" title="场景一：CPU密集型进程"></a>场景一：CPU密集型进程</h5><p>首先，我们在第一个终端运行 stress 命令，模拟一个 CPU 使用率 100% 的场景：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> stress --cpu 1 --timeout 600</span></span><br></pre></td></tr></table></figure>
+<p>接着，打开第二个终端运行 uptime 查看平均负载的变化情况：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> uptime</span></span><br><span class="line">  11:47:45 up 15 days, 4 min,  3 users,  load average: 1.00, 0.85, 0.47</span><br></pre></td></tr></table></figure>
+<p>最后，在第三个终端运行 mpstat 查看 CPU 使用率的变化情况：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> -P ALL 表示监控所有CPU，后面数字5表示间隔5秒后输出一组数据</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> mpstat -P ALL 5</span></span><br><span class="line">Linux 3.10.0-1062.el7.x86_64 (rdc-test-59)      2021年01月18日  _x86_64_        (20 CPU)</span><br><span class="line"></span><br><span class="line">11时42分25秒  CPU    %usr   %nice    %sys %iowait    %irq   %soft  %steal  %guest  %gnice   %idle</span><br><span class="line">11时42分30秒  all    5.02    0.00    0.02    0.00    0.00    0.00    0.00    0.00    0.00   94.96</span><br><span class="line">11时42分30秒    0    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00  100.00</span><br><span class="line">11时42分30秒    1    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00  100.00</span><br><span class="line">11时42分30秒    2    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00  100.00</span><br><span class="line">11时42分30秒    3    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00  100.00</span><br><span class="line">11时42分30秒    4    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00  100.00</span><br><span class="line">11时42分30秒    5    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00  100.00</span><br><span class="line">11时42分30秒    6    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00  100.00</span><br><span class="line">11时42分30秒    7    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00  100.00</span><br><span class="line">11时42分30秒    8    0.20    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00   99.80</span><br><span class="line">11时42分30秒    9    0.20    0.00    0.20    0.00    0.00    0.00    0.00    0.00    0.00   99.60</span><br><span class="line">11时42分30秒   10    0.00    0.00    0.00    0.20    0.00    0.00    0.00    0.00    0.00   99.80</span><br><span class="line">11时42分30秒   11    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00  100.00</span><br><span class="line">11时42分30秒   12    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00  100.00</span><br><span class="line">11时42分30秒   13    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00  100.00</span><br><span class="line">11时42分30秒   14    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00  100.00</span><br><span class="line">11时42分30秒   15  100.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00</span><br><span class="line">11时42分30秒   16    0.20    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00   99.80</span><br><span class="line">11时42分30秒   17    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00  100.00</span><br><span class="line">11时42分30秒   18    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00  100.00</span><br><span class="line">11时42分30秒   19    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00  100.00</span><br></pre></td></tr></table></figure>
+<p>从终端二中可以看到，一分钟的平均负载会慢慢增加到1.00，而从终端三可以看到正好有一个CPU使用率为100%，但是它的iowait只有0。这说明，平均负载的升高正是由于CPU使用率为100%。</p>
+<p>那么，到底是哪个进程导致了 CPU 使用率为 100% 呢？你可以使用 pidstat 来查询：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 间隔5秒后输出一组数据</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> pidstat -u 5 1</span></span><br><span class="line">Linux 3.10.0-1062.el7.x86_64 (rdc-test-59)      2021年01月18日  _x86_64_        (20 CPU)</span><br><span class="line">13时53分30秒   UID       PID    %usr %system  %guest    %CPU   CPU  Command</span><br><span class="line">13时53分35秒     0        99    0.00    0.20    0.00    0.20    18  ksoftirqd/18</span><br><span class="line">13时53分35秒     0      2525    0.00    0.20    0.00    0.20    11  docker-containe</span><br><span class="line">13时53分35秒     0    208888   99.80    0.00    0.00   99.80    15  stress</span><br><span class="line">13时53分35秒     0    210252    0.00    0.20    0.00    0.20    13  kubelet</span><br><span class="line">13时53分35秒     0    210451    0.60    0.20    0.00    0.80    12  java</span><br><span class="line">13时53分35秒     0    210564    0.20    0.20    0.00    0.40    18  pidstat</span><br></pre></td></tr></table></figure>
+<p>从这里可以明显看到，stress进程得CPU使用率为98%。</p>
+<p>ps：后面两个场景是2cpu的机器</p>
+<h5 id="场景二：I-O密集型进程"><a href="#场景二：I-O密集型进程" class="headerlink" title="场景二：I/O密集型进程"></a>场景二：I/O密集型进程</h5><p>首先还是运行 stress 命令，但这次模拟 I/O 压力，即不停地执行 sync：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">stress -i 1 --timeout 600</span><br></pre></td></tr></table></figure>
+<p>还是在第二个终端运行uptime查看平均负载的情况：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> uptime</span></span><br><span class="line"> 13:58:20 up 15 days,  2:14,  3 users,  load average: 1.11, 0.94, 0.60</span><br></pre></td></tr></table></figure>
+<p>然后，第三个终端运行 mpstat 查看 CPU 使用率的变化情况：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 显示所有CPU的指标，并在间隔5秒输出一组数据</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> mpstat -P ALL 5 1</span></span><br><span class="line">Linux 4.15.0 (ubuntu)     09/22/18     _x86_64_    (2 CPU)</span><br><span class="line">13:41:28     CPU    %usr   %nice    %sys %iowait    %irq   %soft  %steal  %guest  %gnice   %idle</span><br><span class="line">13:41:33     all    0.21    0.00   12.07   32.67    0.00    0.21    0.00    0.00    0.00   54.84</span><br><span class="line">13:41:33       0    0.43    0.00   23.87   67.53    0.00    0.43    0.00    0.00    0.00    7.74</span><br><span class="line">13:41:33       1    0.00    0.00    0.81    0.20    0.00    0.00    0.00    0.00    0.00   98.99</span><br></pre></td></tr></table></figure>
+<p>从这里可以看到，1 分钟的平均负载会慢慢增加到 1.06，其中一个 CPU 的系统 CPU 使用率升高到了 23.87，而 iowait 高达 67.53%。这说明，平均负载的升高是由于 iowait 的升高。</p>
+<p>那么到底是哪个进程，导致 iowait 这么高呢？我们还是用 pidstat 来查询：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 间隔5秒后输出一组数据，-u表示CPU指标</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> pidstat -u 5 1</span></span><br><span class="line">Linux 4.15.0 (ubuntu)     09/22/18     _x86_64_    (2 CPU)</span><br><span class="line">13:42:08      UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command</span><br><span class="line">13:42:13        0       104    0.00    3.39    0.00    0.00    3.39     1  kworker/1:1H</span><br><span class="line">13:42:13        0       109    0.00    0.40    0.00    0.00    0.40     0  kworker/0:1H</span><br><span class="line">13:42:13        0      2997    2.00   35.53    0.00    3.99   37.52     1  stress</span><br><span class="line">13:42:13        0      3057    0.00    0.40    0.00    0.00    0.40     0  pidstat</span><br></pre></td></tr></table></figure>
+<p>可以发现。还是stress进程导致的。</p>
+<h5 id="场景三：大量进程得场景"><a href="#场景三：大量进程得场景" class="headerlink" title="场景三：大量进程得场景"></a>场景三：大量进程得场景</h5><p>当系统中运行进程超出CPU运行能力时，就会出现等待CPU的进程。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> stress -c 50 --timeout 600</span></span><br></pre></td></tr></table></figure>
+<p>由于系统只有 20 个 CPU，明显比 50 个进程要少得多，因而，系统的 CPU 处于严重过载状态，平均负载高达 ：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> uptime</span></span><br><span class="line"> 15:17:14 up 15 days,  3:33,  3 users,  load average: 49.05, 27.58, 12.38</span><br></pre></td></tr></table></figure>
+<p>接着再运行 pidstat 来看一下进程的情况：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 间隔5秒后输出一组数据</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> pidstat -u 5 1</span></span><br><span class="line">14:23:25      UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command</span><br><span class="line">14:23:30        0      3190   25.00    0.00    0.00   74.80   25.00     0  stress</span><br><span class="line">14:23:30        0      3191   25.00    0.00    0.00   75.20   25.00     0  stress</span><br><span class="line">14:23:30        0      3192   25.00    0.00    0.00   74.80   25.00     1  stress</span><br><span class="line">14:23:30        0      3193   25.00    0.00    0.00   75.00   25.00     1  stress</span><br><span class="line">14:23:30        0      3194   24.80    0.00    0.00   74.60   24.80     0  stress</span><br><span class="line">14:23:30        0      3195   24.80    0.00    0.00   75.00   24.80     0  stress</span><br><span class="line">14:23:30        0      3196   24.80    0.00    0.00   74.60   24.80     1  stress</span><br><span class="line">14:23:30        0      3197   24.80    0.00    0.00   74.80   24.80     1  stress</span><br><span class="line">14:23:30        0      3200    0.00    0.20    0.00    0.20    0.20     0  pidstat</span><br></pre></td></tr></table></figure>
+<p>可以看出，8 个进程在争抢 2 个 CPU，每个进程等待 CPU 的时间（也就是代码块中的 %wait 列）高达 75%。这些超出 CPU 计算能力的进程，最终导致 CPU 过载。</p>
+<h4 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h4><p>分析完三个案例，归纳下平均负载的理解。</p>
+<p>平均负载提供一个快速查看系统整体性能的手段，反映了整体的负载情况。但只看平均负载本身，并不能直接发现，到底哪里出现了瓶颈。所以，在理解平均负载时，也要注意：</p>
+<ul>
+<li>平均负载高有可能是 CPU 密集型进程导致的；</li>
+<li>平均负载高并不一定代表 CPU 使用率高，还有可能是 I/O 更繁忙了；</li>
+<li>当发现负载高的时候，你可以使用 mpstat、pidstat 等工具，辅助分析负载的来源。</li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/%E6%80%A7%E8%83%BD/" rel="tag"># 性能</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2020/12/22/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E6%B5%81%E7%A8%8B%E8%A7%84%E8%8C%83/" rel="next" title="性能测试流程规范">
+                <i class="fa fa-chevron-left"></i> 性能测试流程规范
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2021/01/18/CPU%E4%B8%8A%E4%B8%8B%E6%96%87%E5%88%87%E6%8D%A2/" rel="prev" title="CPU上下文切换">
+                CPU上下文切换 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/cat.jpg"
+                alt="" />
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+                <a href="/archives">
+                  <span class="site-state-item-count">67</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+          
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">17</span>
+                  <span class="site-state-item-name">标签</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/yestermorrow" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#CPU%E5%B9%B3%E5%9D%87%E8%B4%9F%E8%BD%BD"><span class="nav-number">1.</span> <span class="nav-text">CPU平均负载</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B9%B3%E5%9D%87%E8%B4%9F%E8%BD%BD"><span class="nav-number">1.0.1.</span> <span class="nav-text">平均负载</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B9%B3%E5%9D%87%E8%B4%9F%E8%BD%BD%E4%B8%BA%E5%A4%9A%E5%B0%91%E6%97%B6%E5%90%88%E7%90%86"><span class="nav-number">1.0.1.1.</span> <span class="nav-text">平均负载为多少时合理</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B9%B3%E5%9D%87%E8%B4%9F%E8%BD%BD%E4%B8%8ECPU%E4%BD%BF%E7%94%A8%E7%8E%87"><span class="nav-number">1.0.1.2.</span> <span class="nav-text">平均负载与CPU使用率</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B9%B3%E5%9D%87%E8%B4%9F%E8%BD%BD%E6%A1%88%E4%BE%8B%E5%88%86%E6%9E%90"><span class="nav-number">1.0.1.3.</span> <span class="nav-text">平均负载案例分析</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%9C%BA%E6%99%AF%E4%B8%80%EF%BC%9ACPU%E5%AF%86%E9%9B%86%E5%9E%8B%E8%BF%9B%E7%A8%8B"><span class="nav-number">1.0.1.3.1.</span> <span class="nav-text">场景一：CPU密集型进程</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%9C%BA%E6%99%AF%E4%BA%8C%EF%BC%9AI-O%E5%AF%86%E9%9B%86%E5%9E%8B%E8%BF%9B%E7%A8%8B"><span class="nav-number">1.0.1.3.2.</span> <span class="nav-text">场景二：I&#x2F;O密集型进程</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%9C%BA%E6%99%AF%E4%B8%89%EF%BC%9A%E5%A4%A7%E9%87%8F%E8%BF%9B%E7%A8%8B%E5%BE%97%E5%9C%BA%E6%99%AF"><span class="nav-number">1.0.1.3.3.</span> <span class="nav-text">场景三：大量进程得场景</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B0%8F%E7%BB%93"><span class="nav-number">1.0.1.4.</span> <span class="nav-text">小结</span></a></li></ol></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">yestermorrow</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
