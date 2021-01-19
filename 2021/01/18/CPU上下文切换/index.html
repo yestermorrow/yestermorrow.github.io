@@ -86,11 +86,13 @@
 <meta property="og:site_name" content="Yestermorrow">
 <meta property="og:description" content="CPU上下文切换 为什么进程在竞争CPU的时候并没有真正运行，为什么还会导致系统的负载升高呢？这就是因为CPU的上下文切换。 Linux 是一个多任务操作系统，它支持远大于 CPU 数量的任务同时运行。当然，这些任务实际上并不是真的在同时运行，而是因为系统在很短的时间内，将 CPU 轮流分配给它们，造成多任务同时运行的错觉。 而在每个任务前，CPU都需要知道任务从哪里加载，又从哪里开始运行，也就是">
 <meta property="og:locale">
+<meta property="og:image" content="http://yoursite.com/2021/01/18/CPU%E4%B8%8A%E4%B8%8B%E6%96%87%E5%88%87%E6%8D%A2/98ac9df2593a193d6a7f1767cd68eb5f.png">
 <meta property="article:published_time" content="2021-01-18T08:53:42.000Z">
-<meta property="article:modified_time" content="2021-01-18T09:59:53.635Z">
+<meta property="article:modified_time" content="2021-01-19T01:58:03.034Z">
 <meta property="article:author" content="yestermorrow">
 <meta property="article:tag" content="性能">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2021/01/18/CPU%E4%B8%8A%E4%B8%8B%E6%96%87%E5%88%87%E6%8D%A2/98ac9df2593a193d6a7f1767cd68eb5f.png">
 
 
 
@@ -303,7 +305,9 @@
         <p>CPU上下文切换</p>
 <p>为什么进程在竞争CPU的时候并没有真正运行，为什么还会导致系统的负载升高呢？这就是因为CPU的上下文切换。</p>
 <p>Linux 是一个多任务操作系统，它支持远大于 CPU 数量的任务同时运行。当然，这些任务实际上并不是真的在同时运行，而是因为系统在很短的时间内，将 CPU 轮流分配给它们，造成多任务同时运行的错觉。</p>
-<p>而在每个任务前，CPU都需要知道任务从哪里加载，又从哪里开始运行，也就是说，</p>
+<p>而在每个任务前，CPU都需要知道任务从哪里加载，又从哪里开始运行，也就是说，需要系统事先帮它设置好<strong>CPU寄存器和程序计数器</strong>（Program Counter，PC）。</p>
+<p>CPU寄存器，是CPU内置的容量小、但速度极快的内存。而程序计数器，则是用来存储CPU正在执行的指令位置、或者即将执行的下一条指令位置。它们都是在运行任何任务前，必须的依赖环境，因此也被叫做<strong>CPU上下文</strong>。</p>
+<p><img src="/2021/01/18/CPU%E4%B8%8A%E4%B8%8B%E6%96%87%E5%88%87%E6%8D%A2/98ac9df2593a193d6a7f1767cd68eb5f.png" alt="img"></p>
 
       
     </div>
