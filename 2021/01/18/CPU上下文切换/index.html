@@ -89,8 +89,9 @@
 <meta property="og:image" content="http://yoursite.com/2021/01/18/CPU%E4%B8%8A%E4%B8%8B%E6%96%87%E5%88%87%E6%8D%A2/98ac9df2593a193d6a7f1767cd68eb5f.png">
 <meta property="og:image" content="http://yoursite.com/2021/01/18/CPU%E4%B8%8A%E4%B8%8B%E6%96%87%E5%88%87%E6%8D%A2/0079BC00.jpg">
 <meta property="og:image" content="http://yoursite.com/2021/01/18/CPU%E4%B8%8A%E4%B8%8B%E6%96%87%E5%88%87%E6%8D%A2/4d3f622f272c49132ecb9760310ce1a7.png">
+<meta property="og:image" content="http://yoursite.com/2021/01/18/CPU%E4%B8%8A%E4%B8%8B%E6%96%87%E5%88%87%E6%8D%A2/395666667d77e718da63261be478a96b.png">
 <meta property="article:published_time" content="2021-01-18T08:53:42.000Z">
-<meta property="article:modified_time" content="2021-01-19T05:52:42.407Z">
+<meta property="article:modified_time" content="2021-01-19T10:01:01.871Z">
 <meta property="article:author" content="yestermorrow">
 <meta property="article:tag" content="性能">
 <meta name="twitter:card" content="summary">
@@ -328,9 +329,22 @@
 <p>从用户态到内核态的转变，需要通过<strong>系统调用</strong>来完成。比如，当我们查看文件内容时，就需要多次系统调用来完成：首先调用 open() 打开文件，然后调用 read() 读取文件内容，并调用 write() 将内容写到标准输出，最后再调用 close() 关闭文件。</p>
 <p>那么，系统调用的过程有没有发生 CPU 上下文的切换呢？答案自然是肯定的。</p>
 <p>CPU 寄存器里原来用户态的指令位置，需要先保存起来。接着，为了执行内核态代码，CPU 寄存器需要更新为内核态指令的新位置。最后才是跳转到内核态运行内核任务。</p>
+<p>而系统调用结束后，CPU 寄存器需要恢复原来保存的用户态，然后再切换到用户空间，继续运行进程。所以，</p>
 <blockquote>
-<p>而系统调用结束后，CPU 寄存器需要恢复原来保存的用户态，然后再切换到用户空间，继续运行进程。所以，一次系统调用的过程，其实是发生了两次 CPU 上下文切换。</p>
+<p>一次系统调用的过程，其实是发生了两次 CPU 上下文切换。</p>
 </blockquote>
+<p>不过，需要注意的是，系统调用过程中，并不会涉及到虚拟内存等进程用户态的资源，也不会切换进程。这跟我们通常所说的进程上下文切换是不一样的：</p>
+<ul>
+<li>进程上下文切换，是指从一个进程切换到另一个进程运行。</li>
+<li>而系统调用过程中一直是同一个进程在运行。</li>
+</ul>
+<p>所以，<strong>系统调用过程通常称为特权模式切换，而不是上下文切换</strong>。但实际上，系统调用过程中，CPU 的上下文切换还是无法避免的。</p>
+<p>那么，进程上下文切换跟系统调用又有什么区别呢？</p>
+<p>首先，你需要知道，进程是由内核来管理和调度的，进程的切换只能发生在内核态。所以，进程的上下文不仅包括了虚拟内存、栈、全局变量等用户空间的资源，还包括了内核堆栈、寄存器等内核空间的状态。</p>
+<p>因此，进程的上下文切换就比系统调用时多了一步：在保存当前进程的内核状态和 CPU 寄存器之前，需要先把该进程的虚拟内存、栈等保存下来；而加载了下一进程的内核态后，还需要刷新进程的虚拟内存和用户栈。</p>
+<p>如下图所示，保存上下文和恢复上下文的过程并不是“免费”的，需要内核在 CPU 上运行才能完成。</p>
+<p><img src="/2021/01/18/CPU%E4%B8%8A%E4%B8%8B%E6%96%87%E5%88%87%E6%8D%A2/395666667d77e718da63261be478a96b.png" alt="img"></p>
+<p>根据 <a target="_blank" rel="noopener" href="https://blog.tsunanet.net/2010/11/how-long-does-it-take-to-make-context.html">Tsuna</a> 的测试报告，每次上下文切换都需要几十纳秒到数微秒的 CPU 时间。这个时间还是相当可观的，特别是在进程上下文切换次数较多的情况下，很容易导致 CPU 将大量时间耗费在寄存器、内核栈以及虚拟内存等资源的保存和恢复上，进而大大缩短了真正运行进程的时间。这也正是上一节中我们所讲的，导致平均负载升高的一个重要因素。</p>
 
       
     </div>
